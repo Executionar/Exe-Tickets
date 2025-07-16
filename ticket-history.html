@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <!-- Manifest -->
+<link rel="manifest" href="manifest.json" />
+<!-- Theme color -->
+<meta name="theme-color" content="#c7342a" />
+<!-- App icon -->
+<link rel="icon" type="image/png" href="icon-192.png">
+  <title>ExeTickets - Ticket History</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: #f5f5f5;
+      padding: 0;
+    }
+
+    .top-bar {
+      background: linear-gradient(to right, #c7342a, #c7342a);
+      color: white;
+      padding: 14px 16px;
+      font-size: 16px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+    }
+
+    .top-bar i {
+      margin-right: 12px;
+      font-size: 18px;
+    }
+
+    .ticket-card {
+      background: white;
+      margin: 12px 16px;
+      border-radius: 10px;
+      padding: 14px 16px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+      position: relative;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .ticket-left {
+      max-width: 65%;
+    }
+
+    .ticket-left h3 {
+      margin: 0 0 6px;
+      font-size: 16px;
+    }
+
+    .ticket-left p {
+      margin: 4px 0;
+      font-size: 14px;
+      color: #444;
+    }
+
+    .ticket-right {
+      text-align: right;
+    }
+
+    .ticket-right .fare {
+      font-size: 16px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    .ticket-right .ticket-id {
+      font-size: 12px;
+      color: #888;
+      margin-top: 4px;
+    }
+
+    .invalid-stamp {
+      position: absolute;
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-20deg);
+      font-size: 42px;
+      color: red;
+      font-weight: bold;
+      opacity: 0.15;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    .rebook-btn {
+      margin-top: 10px;
+      padding: 6px 12px;
+      font-size: 13px;
+      background: #2196f3;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .no-tickets {
+      text-align: center;
+      margin: 40px 20px;
+      color: #777;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+<div class="top-bar">
+  <i class="fas fa-arrow-left" onclick="window.history.back()" style="cursor:pointer;"></i>
+  <span style="margin-left: 12px;">All Tickets</span>
+</div>
+  
+
+  <div id="tickets-container"></div>
+
+  <div class="no-tickets" id="noTickets" style="display:none;">No tickets found.</div>
+
+  <script>
+    function checkExpired(timeStr) {
+      const ticketDate = new Date(timeStr);
+      const now = new Date();
+      return ((now - ticketDate) / 60000) > 45; // 45 minutes expiry
+    }
+
+function loadTickets() {
+  const container = document.getElementById("tickets-container");
+  const tickets = JSON.parse(localStorage.getItem("tickets")) || [];
+
+  if (tickets.length === 0) {
+    document.getElementById("noTickets").style.display = "block";
+    return;
+  }
+
+  tickets.reverse().forEach(ticket => {
+    const expired = checkExpired(ticket.time);
+
+    const card = document.createElement("div");
+    card.className = "ticket-card";
+    card.style.cursor = "pointer";
+    card.onclick = () => window.location.href = `ticket.html?id=${ticket.id}`;
+
+    const left = document.createElement("div");
+    left.className = "ticket-left";
+
+    const right = document.createElement("div");
+    right.className = "ticket-right";
+
+    left.innerHTML = `
+      <h3>${ticket.routeName}</h3>
+      <p>${ticket.route}</p>
+      <p>${ticket.time}</p>
+      ${expired ? '<div class="invalid-stamp">INVALID</div>' : ''}
+    `;
+
+    right.innerHTML = `
+      <div class="fare">₹${parseFloat(ticket.fare).toFixed(1)}</div>
+      <div class="ticket-id">${ticket.ticketID}</div>
+      <button class="rebook-btn" onclick="event.stopPropagation(); rebookTicket('${ticket.id}')">Rebook</button>
+    `;
+
+    card.appendChild(left);
+    card.appendChild(right);
+    container.appendChild(card);
+  });
+}
+    function rebookTicket(ticketId) {
+      const tickets = JSON.parse(localStorage.getItem("tickets")) || [];
+      const ticket = tickets.find(t => t.id === ticketId);
+      if (ticket) {
+        localStorage.setItem("rebookData", JSON.stringify(ticket));
+        window.location.href = "index.html?rebook=true";
+      }
+    }
+
+    loadTickets();
+    
+    if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js')
+      .then(reg => console.log("SW registered"))
+      .catch(err => console.error("SW failed", err));
+  }
+    
+  </script>
+
+</body>
+</html>
