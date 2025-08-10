@@ -276,7 +276,7 @@
   function checkExpired(timeStr) {
     const ticketDate = new Date(timeStr);
     const now = new Date();
-    return ((now - ticketDate) / 60000) > 360; // Expired after 45 minutes
+    return ((now - ticketDate) / 60000) > 45; // Expired after 45 minutes
   }
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js')

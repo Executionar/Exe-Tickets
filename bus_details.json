@@ -1,0 +1,151 @@
+[
+  {
+    "bus_number": "GL90",
+    "route_name": "Karawal Nagar Terminal to Nehru Place Terminal",
+    "bus_plate": "DL1PC1234",
+    "type": "Cluster",
+    "color": "orange",
+    "ac": false,
+    "direction": "Up",
+    "stops": [
+      "Karawal Nagar Terminal",
+      "Yamuna Vihar Block C",
+      "Shahdara Border",
+      "Karkardooma",
+      "Nirman Vihar",
+      "Preet Vihar",
+      "Laxmi Nagar",
+      "ITO",
+      "Mandi House",
+      "Khan Market",
+      "Lodhi Colony",
+      "Defence Colony",
+      "Nehru Place Terminal"
+    ]
+  }
+  {
+  "bus_number": "GL22",
+  "route_name": "Rohini Sector 22 to AIIMS",
+  "bus_plate": "DL1PC5678",
+  "type": "Cluster",
+  "color": "orange",
+  "ac": false,
+  "direction": "Down",
+  "stops": [
+    "Rohini Sector 22",
+    "Rohini Sector 21",
+    "Rithala Metro Station",
+    "Rohini Sector 7",
+    "Pitampura",
+    "Netaji Subhash Place",
+    "Punjabi Bagh",
+    "Shivaji Stadium",
+    "Rajiv Chowk",
+    "Mandi House",
+    "Khan Market",
+    "AIIMS"
+  ]
+}
+  {
+  "bus_number": "GL23",
+  "route_name": "Narela Terminal to Shivaji Stadium",
+  "bus_plate": "DL1PC9321",
+  "type": "Cluster",
+  "color": "orange",
+  "ac": false,
+  "direction": "Up",
+  "stops": [
+    "Narela Terminal",
+    "Bawana",
+    "Barwala",
+    "Pooth Khurd",
+    "Sector 5 Rohini",
+    "Sector 3 Rohini",
+    "Rithala Metro Station",
+    "Rohini West",
+    "Rohini East",
+    "Keshav Puram",
+    "Ashok Vihar",
+    "Shivaji Stadium"
+  ]
+}
+{
+  "bus_number": "GL23CLUSTER",
+  "route_name": "Narela Terminal to Shivaji Stadium (Extended Cluster)",
+  "bus_plate": "DL1PC9322",
+  "type": "Cluster",
+  "color": "orange",
+  "ac": false,
+  "direction": "Down",
+  "stops": [
+    "Shivaji Stadium",
+    "Gole Market",
+    "Karol Bagh",
+    "Shastri Nagar",
+    "Kanhaiya Nagar",
+    "Rohini East",
+    "Rohini West",
+    "Rithala Metro Station",
+    "Sector 3 Rohini",
+    "Sector 5 Rohini",
+    "Pooth Khurd",
+    "Barwala",
+    "Bawana",
+    "Narela Terminal"
+  ]
+}
+
+{
+  "bus_number": "GL32",
+  "route_name": "Mundka to Shastri Park",
+  "bus_plate": "DL1PC8325",
+  "type": "Cluster",
+  "color": "orange",
+  "ac": false,
+  "direction": "Up",
+  "stops": [
+    "Mundka Terminal",
+    "Rajdhani Park",
+    "Nangloi",
+    "Peeragarhi",
+    "Paschim Vihar",
+    "Mianwali Nagar",
+    "Punjabi Bagh",
+    "Shivaji Park",
+    "Zakhira",
+    "Shadipur",
+    "Patel Nagar",
+    "Karol Bagh",
+    "R K Ashram",
+    "Pahar Ganj",
+    "Ajmeri Gate",
+    "ISBT Kashmere Gate",
+    "Shastri Park"
+  ]
+}
+{
+  "bus_number": "GL91",
+  "route_name": "Najafgarh to Nehru Place",
+  "bus_plate": "DL1PD7091",
+  "type": "Cluster",
+  "color": "orange",
+  "ac": false,
+  "direction": "Down",
+  "stops": [
+    "Najafgarh Terminal",
+    "Dhasa Stand",
+    "Uttam Nagar Terminal",
+    "Janakpuri West",
+    "Tilak Nagar",
+    "Rajouri Garden",
+    "Ramesh Nagar",
+    "Patel Nagar",
+    "Karol Bagh",
+    "Connaught Place",
+    "Mandi House",
+    "Lajpat Nagar",
+    "Nehru Place Terminal"
+  ]
+}
+  
+]

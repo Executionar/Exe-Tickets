@@ -1,273 +1,279 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>ExeTickets - Home</title>
-  <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#c7342a" />
-  <link rel="icon" type="image/png" href="icon-192.png">
+  <title>ExeTickets - Dynamic Cards</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: Arial, sans-serif;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #f0f4f8, #e4ecf4);
+      overflow-x: hidden;
       padding: 20px;
     }
-
-    .input-group {
-      margin-bottom: 12px;
-      text-transform: capitalize;
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
     }
-
-    label {
-      display: block;
-      font-weight: 500;
-      margin-bottom: 6px;
+    .card-container {
+      display: flex;
+      overflow-x: auto;
+      gap: 20px;
+      padding: 20px 0;
+      align-items: flex-start;
     }
-
-    input, select, button {
+    .card {
+      min-width: 300px;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      padding: 20px;
+      position: relative;
+      transition: all 0.3s ease;
+    }
+    .card.collapsed .details { display: none; }
+    .summary {
+      display: none;
+      font-size: 14px;
+      color: #333;
+      margin-bottom: 10px;
+    }
+    .card.collapsed .summary { display: block; }
+    .collapse-btn {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: #eee;
+      border: none;
+      border-radius: 4px;
+      padding: 3px 6px;
+      cursor: pointer;
+    }
+    .input-group { margin-bottom: 12px; }
+    label { font-weight: 500; display: block; margin-bottom: 5px; }
+    input, select {
       width: 100%;
       padding: 10px;
       font-size: 15px;
       border: 1px solid #ccc;
-      border-radius: 6px;
+      border-radius: 8px;
     }
-
-    button {
-      background-color: #007bff;
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
+    .fare-options {
+      display: flex;
+      justify-content: space-between;
       margin-top: 10px;
     }
-
-    button:hover {
-      background-color: #0056b3;
+    .fare-box {
+      flex: 1;
+      margin: 0 5px;
+      background: rgba(255,255,255,0.25);
+      backdrop-filter: blur(4px);
+      border-radius: 8px;
+      padding: 10px;
+      text-align: center;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .fare-box:hover, .fare-box.selected {
+      background: #c7342a;
+      color: white;
+    }
+    .glass-button {
+      padding: 12px 20px;
+      border-radius: 12px;
+      border: none;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(6px);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .glass-button:hover { background: rgba(255, 255, 255, 0.35); }
+    .popup {
+      position: fixed;
+      top: 10%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.2);
+      padding: 20px;
+      z-index: 1000;
+      width: 90%;
+      max-width: 400px;
+    }
+    .popup h3 { text-align: center; }
+    .popup .ticket-list .ticket-item {
+      padding: 10px;
+      border-bottom: 1px solid #ccc;
+      cursor: pointer;
+    }
+    .popup .ticket-item:hover { background: #f0f0f0; }
+    .popup .close {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      font-size: 20px;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <h2>ExeTickets - Book Bus Ticket</h2>
+  <h2>ExeTickets - Book Tickets</h2>
+  <div class="card-container" id="cardContainer"></div>
+  <div class="controls">
+    <button class="glass-button" onclick="addCard()">Add Card</button>
+    <button class="glass-button" onclick="buySelectedTicket()">Buy Ticket</button>
+  </div>  <div class="popup" id="fillPreviousPopup" style="display:none">
+    <span class="close" onclick="document.getElementById('fillPreviousPopup').style.display='none'">&times;</span>
+    <h3>Select Previous Ticket</h3>
+    <div class="ticket-list"></div>
+  </div>  <script>
+    let cardCounter = 0;
+    let selectedCardId = null;
 
-  <div class="input-group">
-    <label for="bus-number">Bus Number</label>
-    <input type="text" id="bus-number" placeholder="e.g., 4645"/>
-  </div>
-
-  <div class="input-group">
-    <label for="bus-plate">Bus Plate Number</label>
-    <select id="bus-plate">
-      <option value="DL1PC">DL1PC</option>
-      <option value="DL1PD">DL1PD</option>
-      <option value="DL1PB">DL1PB</option>
-      <option value="DL51GD">DL51GD</option>
-      <option value="DL51EV">DL51EV</option>
-    </select>
-  </div>
-
-  <div class="input-group">
-    <label for="bus-color">Bus Colour</label>
-    <select id="bus-color">
-      <option value="green">Green (Non-AC)</option>
-      <option value="blue">Blue (AC)</option>
-      <option value="sky-blue">Sky Blue (AC)</option>
-      <option value="red">Red</option>
-      <option value="orange">Orange</option>
-    </select>
-  </div>
-
-  <div class="input-group">
-    <label for="route-name">Bus Route Name</label>
-    <input type="text" id="route-name" placeholder="e.g., 957"/>
-  </div>
-
-  <div class="input-group">
-    <label for="start">Starting Stop</label>
-    <input type="text" id="start" placeholder="e.g., Rohini Sec-3"/>
-  </div>
-
-  <div class="input-group">
-    <label for="end">Destination Stop</label>
-    <input type="text" id="end" placeholder="e.g., Anand Vihar"/>
-  </div>
-
-  <button onclick="showRoutePopup()">Choose from Previous Routes</button>
-  <button onclick="buyTicket()">Buy Ticket</button>
-  <button onclick="window.location.href='ticket-history.html'">My Tickets</button>
-
-  <script>
-    window.addEventListener("DOMContentLoaded", () => {
-      const params = new URLSearchParams(window.location.search);
-      const rebook = params.get("rebook");
-      const data = JSON.parse(localStorage.getItem("rebookData"));
-
-      if (rebook === "true" && data) {
-        document.getElementById("bus-number").value = data.number || "";
-        document.getElementById("bus-plate").value = data.plate || "";
-        document.getElementById("bus-color").value = localStorage.getItem("ticketColor") || "green";
-        document.getElementById("route-name").value = data.routeName || "";
-
-        const [start, end] = (data.route || "").split("→");
-        document.getElementById("start").value = start?.trim() || "";
-        document.getElementById("end").value = end?.trim() || "";
-      }
-    });
-
-    function showFarePopup(callback) {
-      const farePopup = document.createElement("div");
-      farePopup.style.position = "fixed";
-      farePopup.style.top = 0;
-      farePopup.style.left = 0;
-      farePopup.style.width = "100vw";
-      farePopup.style.height = "100vh";
-      farePopup.style.backgroundColor = "rgba(0,0,0,0.6)";
-      farePopup.style.display = "flex";
-      farePopup.style.justifyContent = "center";
-      farePopup.style.alignItems = "center";
-      farePopup.style.zIndex = "9999";
-
-      const box = document.createElement("div");
-      box.style.background = "white";
-      box.style.borderRadius = "10px";
-      box.style.padding = "20px";
-      box.style.textAlign = "center";
-      box.innerHTML = `<h3>Select Fare</h3>`;
-
-      const fareOptions = [5, 10, 15, 25];
-      fareOptions.forEach(f => {
-        const btn = document.createElement("button");
-        btn.textContent = `₹${f}`;
-        btn.style.margin = "10px";
-        btn.style.padding = "10px 16px";
-        btn.style.border = "none";
-        btn.style.borderRadius = "6px";
-        btn.style.backgroundColor = "#c7342a";
-        btn.style.color = "white";
-        btn.style.fontSize = "16px";
-        btn.onclick = () => {
-          document.body.removeChild(farePopup);
-          callback(f);
-        };
-        box.appendChild(btn);
-      });
-
-      farePopup.appendChild(box);
-      document.body.appendChild(farePopup);
+    function generateOneDelhiTicketID() {
+      const now = new Date();
+      const dd = String(now.getDate()).padStart(2, '0');
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const yyyy = now.getFullYear();
+      const randomHex = Math.random().toString(16).substring(2, 12);
+      return `T${dd}${mm}${yyyy}${randomHex}`;
     }
 
-    function buyTicket() {
-      const number = document.getElementById("bus-number").value;
-      const plate = document.getElementById("bus-plate").value;
-      const color = document.getElementById("bus-color").value;
-      const routeName = document.getElementById("route-name").value;
-      const start = document.getElementById("start").value;
-      const end = document.getElementById("end").value;
-      const fullRoute = `${start} → ${end}`;
+    function addCard() {
+      const id = `card-${++cardCounter}`;
+      const card = document.createElement("div");
+      card.className = "card";
+      card.setAttribute("data-id", id);
+      card.innerHTML = `
+        <button class="collapse-btn" onclick="toggleCollapse(event, '${id}')">-</button>
+        <div class="summary"></div>
+        <div class="details">
+          <div class="input-group">
+            <label>Bus Number</label>
+            <input type="text" class="bus-number" />
+          </div>
+          <div class="input-group">
+            <label>Route</label>
+            <input type="text" class="route-name" />
+          </div>
+          <div class="input-group">
+            <label>Start</label>
+            <input type="text" class="start" />
+          </div>
+          <div class="input-group">
+            <label>End</label>
+            <input type="text" class="end" />
+          </div>
+          <div class="fare-options">
+            ${[5,10,15,25].map(f => `<div class="fare-box" onclick="selectFare(this, ${f})">₹${f}</div>`).join('')}
+          </div>
+          <div style="margin-top:10px; text-align:center;">
+            <button class="glass-button" onclick="openFillPrevious(event, '${id}')">Fill Previous</button>
+          </div>
+        </div>
+      `;
+      document.getElementById("cardContainer").appendChild(card);
+      selectCard(id);
+    }
 
-      if (!number || !routeName || !start || !end) {
-        alert("Please fill in all fields.");
-        return;
-      }
-
-      showFarePopup(fare => {
-        const discounted = (fare * 0.9).toFixed(1);
-
-        function generateTicketID() {
-          const now = new Date();
-          const dateStr = now.getDate().toString().padStart(2, '0') +
-                          (now.getMonth() + 1).toString().padStart(2, '0') +
-                          now.getFullYear();
-          const randomPart = Math.random().toString(16).substring(2, 10);
-          return "T" + dateStr + randomPart;
-        }
-
-        const now = new Date();
-        const ticket = {
-          id: generateTicketID(),
-          number,
-          plate,
-          color,
-          route: fullRoute,
-          routeName,
-          time: now,
-          price: fare,
-          fare: discounted,
-          ticketID: generateTicketID()
-        };
-
-        const allTickets = JSON.parse(localStorage.getItem("tickets")) || [];
-        allTickets.push(ticket);
-        localStorage.setItem("tickets", JSON.stringify(allTickets));
-        localStorage.setItem("ticketColor", color);
-        saveRouteToHistory(start, end);
-        window.location.href = `ticket.html?id=${ticket.id}`;
+    function selectCard(id) {
+      selectedCardId = id;
+      document.querySelectorAll(".card").forEach(card => {
+        card.style.border = card.getAttribute("data-id") === id ? "2px solid #007bff" : "none";
       });
     }
 
-    function saveRouteToHistory(start, end) {
-      const history = JSON.parse(localStorage.getItem("routeHistory")) || [];
-      const newRoute = { start, end };
-      const exists = history.some(r => r.start === start && r.end === end);
-      if (!exists) {
-        history.unshift(newRoute);
-        if (history.length > 5) history.pop();
-        localStorage.setItem("routeHistory", JSON.stringify(history));
+    function toggleCollapse(e, id) {
+      e.stopPropagation();
+      const card = document.querySelector(`[data-id='${id}']`);
+      card.classList.toggle("collapsed");
+      const btn = card.querySelector(".collapse-btn");
+      btn.textContent = card.classList.contains("collapsed") ? "+" : "-";
+
+      const summary = card.querySelector(".summary");
+      if (card.classList.contains("collapsed")) {
+        const number = card.querySelector(".bus-number").value;
+        const route = card.querySelector(".route-name").value;
+        const start = card.querySelector(".start").value;
+        const end = card.querySelector(".end").value;
+        const fareBox = card.querySelector(".fare-box.selected");
+        const fare = fareBox ? fareBox.textContent : 'N/A';
+        summary.innerHTML = `<b>${number}</b><br>${route}<br>${start} → ${end}<br>${fare}`;
       }
     }
 
-    function showRoutePopup() {
-      const history = JSON.parse(localStorage.getItem("routeHistory")) || [];
-      if (history.length === 0) {
-        alert("No previous routes found.");
-        return;
+    function selectFare(box, amount) {
+      const siblings = box.parentNode.querySelectorAll('.fare-box');
+      siblings.forEach(b => b.classList.remove('selected'));
+      box.classList.add('selected');
+      box.parentNode.setAttribute('data-fare', amount);
+    }
+
+    function buySelectedTicket() {
+      if (!selectedCardId) return alert("Select a card");
+      const card = document.querySelector(`[data-id='${selectedCardId}']`);
+      const number = card.querySelector(".bus-number").value;
+      const route = card.querySelector(".route-name").value;
+      const start = card.querySelector(".start").value;
+      const end = card.querySelector(".end").value;
+      const fareBox = card.querySelector(".fare-box.selected");
+      const fare = fareBox ? parseInt(fareBox.textContent.replace('₹','')) : null;
+
+      if (!number || !route || !start || !end || !fare) return alert("Fill all fields and select fare");
+
+      const ticket = {
+        id: generateOneDelhiTicketID(),
+        number, routeName: route, route: `${start} → ${end}`,
+        time: new Date().toISOString(),
+        price: fare,
+      };
+      const all = JSON.parse(localStorage.getItem("tickets") || "[]");
+      all.push(ticket);
+      localStorage.setItem("tickets", JSON.stringify(all));
+      alert("Ticket saved: " + ticket.id);
+    }
+
+    function openFillPrevious(e, cardId) {
+      e.stopPropagation();
+      const popup = document.getElementById("fillPreviousPopup");
+      popup.style.display = "block";
+      popup.setAttribute("data-target", cardId);
+      const list = popup.querySelector(".ticket-list");
+      list.innerHTML = "";
+      const all = JSON.parse(localStorage.getItem("tickets") || "[]").reverse().slice(0, 10);
+      if (!all.length) {
+        list.innerHTML = "<p>No tickets found.</p>";
+      } else {
+        all.forEach(ticket => {
+          const item = document.createElement("div");
+          item.className = "ticket-item";
+          item.innerHTML = `<b>${ticket.number}</b> - ${ticket.routeName}<br><small>${ticket.route}</small>`;
+          item.onclick = () => fillCardWithData(cardId, ticket);
+          list.appendChild(item);
+        });
       }
+    }
 
-      const popup = document.createElement("div");
-      popup.style.position = "fixed";
-      popup.style.top = "50%";
-      popup.style.left = "50%";
-      popup.style.transform = "translate(-50%, -50%)";
-      popup.style.background = "#fff";
-      popup.style.padding = "16px";
-      popup.style.boxShadow = "0 4px 12px rgba(0,0,0,0.2)";
-      popup.style.borderRadius = "8px";
-      popup.style.zIndex = "9999";
-
-      const title = document.createElement("h4");
-      title.innerText = "Select Previous Route";
-      popup.appendChild(title);
-
-      history.forEach(r => {
-        const btn = document.createElement("button");
-        btn.innerText = `${r.start} → ${r.end}`;
-        btn.style.margin = "6px 0";
-        btn.style.width = "100%";
-        btn.style.padding = "8px";
-        btn.style.border = "1px solid #ccc";
-        btn.style.borderRadius = "5px";
-        btn.style.background = "#f5f5f5";
-        btn.style.cursor = "pointer";
-        btn.onclick = () => {
-          document.getElementById("start").value = r.start;
-          document.getElementById("end").value = r.end;
-          document.body.removeChild(popup);
-        };
-        popup.appendChild(btn);
+    function fillCardWithData(cardId, data) {
+      const card = document.querySelector(`[data-id='${cardId}']`);
+      card.querySelector(".bus-number").value = data.number;
+      card.querySelector(".route-name").value = data.routeName;
+      const [start, end] = data.route.split(" → ");
+      card.querySelector(".start").value = start;
+      card.querySelector(".end").value = end;
+      const fareBoxes = card.querySelectorAll(".fare-box");
+      fareBoxes.forEach(b => {
+        b.classList.remove("selected");
+        if (parseInt(b.textContent.replace('₹','')) === data.price) b.classList.add("selected");
       });
-
-      const close = document.createElement("button");
-      close.innerText = "Cancel";
-      close.style.marginTop = "12px";
-      close.onclick = () => document.body.removeChild(popup);
-      popup.appendChild(close);
-
-      document.body.appendChild(popup);
+      document.getElementById("fillPreviousPopup").style.display = "none";
     }
 
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js')
-        .then(reg => console.log("SW registered"))
-        .catch(err => console.error("SW failed", err));
-    }
-  </script>
-</body>
+    window.onload = () => addCard();
+  </script></body>
 </html>
