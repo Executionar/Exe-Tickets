@@ -1,279 +1,1977 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>ExeTickets - Dynamic Cards</title>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#c7342a" />
+  <link rel="icon" type="image/png" href="icon-192.png">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --primary: #c7342a;
+      --secondary: #63d0e8;
+      --background: #f0f4f8;
+      --card-bg: white;
+      --text: #333;
+      --border: #ccc;
+      --shadow: rgba(0,0,0,0.1);
+      --glass-bg: rgba(255,255,255,0.2);
+      --accent: #007bff;
+      --wallet-low: #ff4d4d;
+      --wallet-medium: #ff9800;
+      --wallet-high: #4CAF50;
+    }
+
+    [data-theme="dark"] {
+      --primary: #e74c3c;
+      --secondary: #3498db;
+      --background: #121212;
+      --card-bg: #1e1e1e;
+      --text: #f0f0f0;
+      --border: #444;
+      --shadow: rgba(0,0,0,0.3);
+      --glass-bg: rgba(255,255,255,0.1);
+      --accent: #4CAF50;
+    }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to right, #f0f4f8, #e4ecf4);
+      font-family: 'Poppins', sans-serif;
+      background: var(--background);
+      color: var(--text);
       overflow-x: hidden;
       padding: 20px;
+      padding-bottom: 80px;
+      transition: all 0.3s ease;
     }
+
+    .theme-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+      background: var(--glass-bg);
+      backdrop-filter: blur(10px);
+      border: none;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 20px;
+      color: var(--text);
+      transition: all 0.3s ease;
+    }
+
+    .theme-toggle:hover {
+      transform: scale(1.1);
+    }
+
+    /* Wallet Styles */
+    .wallet-container {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      z-index: 1000;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .wallet {
+      background: var(--glass-bg);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 4px 15px var(--shadow);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .wallet:hover {
+      transform: scale(1.05);
+    }
+
+    .wallet-icon {
+      font-size: 24px;
+      color: var(--primary);
+    }
+
+    .wallet-balance {
+      font-weight: 600;
+      font-size: 18px;
+      color: var(--text);
+    }
+
+    .wallet-border {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      height: 4px;
+      background: var(--wallet-high);
+      transition: all 0.3s ease;
+    }
+
+    .wallet-border.low {
+      background: var(--wallet-low);
+    }
+
+    .wallet-border.medium {
+      background: var(--wallet-medium);
+    }
+
+    .wallet-border.high {
+      background: var(--wallet-high);
+    }
+
     h2 {
       text-align: center;
       margin-bottom: 20px;
+      animation: fadeIn 1s ease-out;
+      color: var(--primary);
     }
+
     .card-container {
       display: flex;
       overflow-x: auto;
       gap: 20px;
       padding: 20px 0;
-      align-items: flex-start;
+      align-items: center;
+      animation: slideUp 0.8s ease-out;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
     }
+
+    .card-container::-webkit-scrollbar {
+      display: none;
+    }
+
     .card {
       min-width: 300px;
-      background: white;
+      background: var(--card-bg);
       border-radius: 16px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      box-shadow: 0 10px 25px var(--shadow);
       padding: 20px;
       position: relative;
+      animation: popIn 0.4s ease-out;
       transition: all 0.3s ease;
+      transform-style: preserve-3d;
+      border: 2px solid transparent;
     }
-    .card.collapsed .details { display: none; }
-    .summary {
+
+    .card.collapsed {
+      min-width: 250px;
+      padding: 15px;
+    }
+
+    .card.collapsed .card-details {
       display: none;
-      font-size: 14px;
-      color: #333;
+    }
+
+    .card.collapsed .card-summary {
+      display: block;
+    }
+
+    .card-summary {
+      display: none;
+      text-align: center;
+    }
+
+    .card-summary h3 {
+      color: var(--primary);
       margin-bottom: 10px;
     }
-    .card.collapsed .summary { display: block; }
-    .collapse-btn {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      background: #eee;
-      border: none;
-      border-radius: 4px;
-      padding: 3px 6px;
-      cursor: pointer;
+
+    @keyframes popIn {
+      0% { transform: scale(0.5) rotateY(180deg); opacity: 0; }
+      100% { transform: scale(1) rotateY(0deg); opacity: 1; }
     }
-    .input-group { margin-bottom: 12px; }
-    label { font-weight: 500; display: block; margin-bottom: 5px; }
+
+    @keyframes slideUp {
+      0% { transform: translateY(30px); opacity: 0; }
+      100% { transform: translateY(0); opacity: 1; }
+    }
+
+    @keyframes fadeIn {
+      0% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+
+    @keyframes confetti {
+      0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(300px) rotate(720deg); opacity: 0; }
+    }
+
+    .card:hover {
+      transform: scale(1.05);
+    }
+
+    .card.selected {
+      border-color: var(--accent);
+      box-shadow: 0 0 20px var(--accent);
+    }
+
+    .input-group {
+      margin-bottom: 12px;
+    }
+
+    label {
+      font-weight: 500;
+      display: block;
+      margin-bottom: 5px;
+      color: var(--text);
+    }
+
     input, select {
       width: 100%;
       padding: 10px;
       font-size: 15px;
-      border: 1px solid #ccc;
+      border: 1px solid var(--border);
       border-radius: 8px;
+      background: var(--card-bg);
+      color: var(--text);
+      transition: all 0.3s ease;
     }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 10px var(--accent);
+    }
+
     .fare-options {
       display: flex;
       justify-content: space-between;
       margin-top: 10px;
     }
+
     .fare-box {
       flex: 1;
       margin: 0 5px;
-      background: rgba(255,255,255,0.25);
+      background: var(--glass-bg);
       backdrop-filter: blur(4px);
       border-radius: 8px;
       padding: 10px;
       text-align: center;
       font-weight: bold;
       cursor: pointer;
-      transition: 0.3s;
+      transition: all 0.3s ease;
+      color: var(--text);
     }
+
     .fare-box:hover, .fare-box.selected {
-      background: #c7342a;
+      background: var(--primary);
       color: white;
+      transform: scale(1.05);
     }
+
     .glass-button {
       padding: 12px 20px;
       border-radius: 12px;
       border: none;
-      background: rgba(255, 255, 255, 0.2);
+      background: var(--glass-bg);
       backdrop-filter: blur(6px);
-      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 20px var(--shadow);
       font-weight: bold;
       cursor: pointer;
-      transition: 0.3s;
+      transition: all 0.3s ease;
+      color: var(--text);
     }
-    .glass-button:hover { background: rgba(255, 255, 255, 0.35); }
-    .popup {
-      position: fixed;
-      top: 10%;
-      left: 50%;
-      transform: translateX(-50%);
-      background: white;
-      border-radius: 10px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.2);
-      padding: 20px;
-      z-index: 1000;
-      width: 90%;
-      max-width: 400px;
+
+    .glass-button:hover {
+      background: var(--primary);
+      color: white;
+      transform: translateY(-2px);
     }
-    .popup h3 { text-align: center; }
-    .popup .ticket-list .ticket-item {
-      padding: 10px;
-      border-bottom: 1px solid #ccc;
+
+    .add-card-btn {
+      font-size: 26px;
       cursor: pointer;
+      background: var(--card-bg);
+      border-radius: 50%;
+      padding: 8px 12px;
+      box-shadow: 0 4px 12px var(--shadow);
+      align-self: center;
+      transition: all 0.3s ease;
+      color: var(--text);
+      border: 2px solid var(--border);
     }
-    .popup .ticket-item:hover { background: #f0f0f0; }
-    .popup .close {
+
+    .add-card-btn:hover {
+      transform: scale(1.2);
+      background: var(--primary);
+      color: white;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+
+    .delete-btn {
       position: absolute;
       top: 10px;
-      right: 15px;
+      right: 10px;
+      background: var(--glass-bg);
+      border: none;
+      border-radius: 50%;
+      padding: 5px 8px;
+      font-size: 14px;
+      cursor: pointer;
+      color: var(--text);
+      transition: all 0.3s ease;
+    }
+
+    .delete-btn:hover {
+      background: #ff4d4d;
+      color: white;
+    }
+
+    .collapse-btn {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: var(--glass-bg);
+      border: none;
+      border-radius: 50%;
+      padding: 5px 8px;
+      font-size: 14px;
+      cursor: pointer;
+      color: var(--text);
+      transition: all 0.3s ease;
+    }
+
+    .collapse-btn:hover {
+      background: var(--accent);
+      color: white;
+    }
+
+    .popup {
+      position: fixed;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--card-bg);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 8px 30px var(--shadow);
+      max-height: 80vh;
+      overflow-y: auto;
+      z-index: 1000;
+      animation: fadeIn 0.3s ease-out;
+      color: var(--text);
+    }
+
+    .popup h3 { margin-bottom: 10px; color: var(--primary); }
+    .popup .ticket {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: var(--card-bg);
+      color: var(--text);
+    }
+
+    .popup .ticket:hover {
+      background: var(--glass-bg);
+      transform: translateX(5px);
+    }
+
+    .popup .close {
+      position: absolute;
+      top: 8px;
+      right: 12px;
       font-size: 20px;
       cursor: pointer;
+      color: var(--primary);
+    }
+
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--card-bg);
+      box-shadow: 0 -2px 10px var(--shadow);
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0;
+      z-index: 1000;
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      color: var(--text);
+      text-decoration: none;
+      padding: 5px 10px;
+      border-radius: 8px;
+    }
+
+    .nav-item:hover {
+      background: var(--glass-bg);
+      transform: translateY(-2px);
+    }
+
+    .nav-item.active {
+      color: var(--primary);
+    }
+
+    .nav-item i {
+      font-size: 20px;
+      margin-bottom: 2px;
+    }
+
+    .nav-item span {
+      font-size: 12px;
+    }
+
+    .notification-badge {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background: #ff4d4d;
+      color: white;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: bold;
+    }
+
+    .confetti {
+      position: fixed;
+      width: 10px;
+      height: 10px;
+      background: var(--primary);
+      animation: confetti 3s ease-out forwards;
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    .autocomplete-suggestions {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 1000;
+      display: none;
+      box-shadow: 0 4px 12px var(--shadow);
+    }
+
+    .autocomplete-suggestions.show {
+      display: block;
+    }
+
+    .autocomplete-item {
+      padding: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .autocomplete-item:hover {
+      background: var(--glass-bg);
+    }
+
+    .autocomplete-item.recent {
+      background: rgba(199, 52, 42, 0.1);
+      border-left: 3px solid var(--primary);
+    }
+
+    .autocomplete-item.recent:hover {
+      background: rgba(199, 52, 42, 0.2);
+    }
+
+    .autocomplete-category {
+      padding: 5px 10px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--primary);
+      background: var(--glass-bg);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .autocomplete-icon {
+      font-size: 14px;
+      color: var(--primary);
+    }
+
+    .input-group {
+      position: relative;
+    }
+
+    /* Export/Import Bubble Styles */
+    .data-bubble {
+      position: fixed;
+      bottom: 100px;
+      right: 20px;
+      width: 60px;
+      height: 60px;
+      background: var(--primary);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 20px var(--shadow);
+      z-index: 999;
+      transition: all 0.3s ease;
+      animation: bubblePulse 2s infinite;
+    }
+
+    .data-bubble:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 25px var(--shadow);
+    }
+
+    .data-bubble:active {
+      transform: scale(0.95);
+    }
+
+    .data-bubble i {
+      font-size: 24px;
+      color: white;
+      transition: all 0.3s ease;
+    }
+
+    .data-bubble.export-mode {
+      background: #4CAF50;
+    }
+
+    .data-bubble.import-mode {
+      background: #2196F3;
+    }
+
+    @keyframes bubblePulse {
+      0% { box-shadow: 0 4px 20px var(--shadow); }
+      50% { box-shadow: 0 4px 30px var(--shadow), 0 0 0 10px rgba(199, 52, 42, 0.1); }
+      100% { box-shadow: 0 4px 20px var(--shadow); }
+    }
+
+    .bubble-tooltip {
+      position: absolute;
+      bottom: 70px;
+      right: 0;
+      background: var(--card-bg);
+      color: var(--text);
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      white-space: nowrap;
+      box-shadow: 0 2px 10px var(--shadow);
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+      pointer-events: none;
+    }
+
+    .bubble-tooltip::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      right: 20px;
+      border: 6px solid transparent;
+      border-top-color: var(--card-bg);
+    }
+
+    .data-bubble:hover .bubble-tooltip {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    /* Export Options Modal Styles */
+    .export-options-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .export-options-modal.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .export-options-content {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 25px;
+      width: 90%;
+      max-width: 500px;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 10px 30px var(--shadow);
+      transform: scale(0.9);
+      transition: all 0.3s ease;
+    }
+
+    .export-options-modal.show .export-options-content {
+      transform: scale(1);
+    }
+
+    .export-options-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .export-options-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    .close-modal {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: var(--text);
+      transition: all 0.3s ease;
+    }
+
+    .close-modal:hover {
+      color: var(--primary);
+      transform: rotate(90deg);
+    }
+
+    .export-option {
+      display: flex;
+      align-items: center;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      background: var(--glass-bg);
+      transition: all 0.3s ease;
+    }
+
+    .export-option:hover {
+      background: var(--primary);
+      color: white;
+    }
+
+    .export-option-checkbox {
+      margin-right: 15px;
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+    }
+
+    .export-option-info {
+      flex: 1;
+    }
+
+    .export-option-name {
+      font-weight: 500;
+      margin-bottom: 3px;
+    }
+
+    .export-option-desc {
+      font-size: 12px;
+      opacity: 0.8;
+    }
+
+    .export-option-count {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--primary);
+      background: var(--card-bg);
+      padding: 4px 8px;
+      border-radius: 12px;
+    }
+
+    .export-option:hover .export-option-count {
+      background: rgba(255,255,255,0.2);
+      color: white;
+    }
+
+    .export-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .export-btn {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .export-btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .export-btn-secondary {
+      background: var(--glass-bg);
+      color: var(--text);
+    }
+
+    .export-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px var(--shadow);
+    }
+
+    /* Payment Overlay Styles */
+    .payment-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .payment-overlay.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .payment-content {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 30px;
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+      box-shadow: 0 10px 30px var(--shadow);
+      transform: scale(0.8);
+      transition: all 0.3s ease;
+    }
+
+    .payment-overlay.show .payment-content {
+      transform: scale(1);
+    }
+
+    .payment-icon {
+      font-size: 60px;
+      color: var(--primary);
+      margin-bottom: 20px;
+    }
+
+    .payment-title {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 15px;
+      color: var(--text);
+    }
+
+    .payment-details {
+      margin-bottom: 20px;
+    }
+
+    .payment-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      font-size: 16px;
+    }
+
+    .payment-row.total {
+      font-weight: 600;
+      font-size: 18px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+    }
+
+    .payment-discount {
+      color: var(--wallet-high);
+    }
+
+    .payment-button {
+      padding: 12px 30px;
+      border: none;
+      border-radius: 8px;
+      background: var(--primary);
+      color: white;
+      font-weight: 600;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .payment-button:hover {
+      background: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 10px;
+      }
+      
+      .card {
+        min-width: 280px;
+      }
+      
+      .controls {
+        flex-direction: column;
+        align-items: center;
+      }
+      
+      .glass-button {
+        width: 100%;
+        max-width: 200px;
+      }
+      
+      .wallet-container {
+        top: 10px;
+        left: 10px;
+      }
+      
+      .wallet {
+        padding: 8px 15px;
+      }
+      
+      .wallet-balance {
+        font-size: 16px;
+      }
+      
+      .wallet-icon {
+        font-size: 20px;
+      }
     }
   </style>
 </head>
 <body>
+  <!-- Wallet Component -->
+  <div class="wallet-container" onclick="navigateToWallet()">
+    <div class="wallet">
+      <i class="fas fa-wallet wallet-icon"></i>
+      <div class="wallet-balance" id="wallet-balance">₹0.00</div>
+      <div class="wallet-border" id="wallet-border"></div>
+    </div>
+  </div>
+
+  <button class="theme-toggle" onclick="toggleTheme()">
+    <i class="fas fa-moon" id="theme-icon"></i>
+  </button>
+
   <h2>ExeTickets - Book Tickets</h2>
-  <div class="card-container" id="cardContainer"></div>
+
+  <div class="card-container" id="cardContainer">
+    <div class="add-card-btn" onclick="addCard('left')">+</div>
+    <div class="add-card-btn" onclick="addCard('right')">+</div>
+  </div>
+  
   <div class="controls">
-    <button class="glass-button" onclick="addCard()">Add Card</button>
     <button class="glass-button" onclick="buySelectedTicket()">Buy Ticket</button>
-  </div>  <div class="popup" id="fillPreviousPopup" style="display:none">
-    <span class="close" onclick="document.getElementById('fillPreviousPopup').style.display='none'">&times;</span>
+    <button class="glass-button" onclick="bookForFriend()">Book for Friend</button>
+  </div>
+
+  <div id="popup" class="popup" style="display:none;">
+    <span class="close" onclick="closePopup()">&times;</span>
     <h3>Select Previous Ticket</h3>
-    <div class="ticket-list"></div>
-  </div>  <script>
-    let cardCounter = 0;
-    let selectedCardId = null;
+    <div id="popup-content"></div>
+  </div>
 
-    function generateOneDelhiTicketID() {
-      const now = new Date();
-      const dd = String(now.getDate()).padStart(2, '0');
-      const mm = String(now.getMonth() + 1).padStart(2, '0');
-      const yyyy = now.getFullYear();
-      const randomHex = Math.random().toString(16).substring(2, 12);
-      return `T${dd}${mm}${yyyy}${randomHex}`;
-    }
+  <div id="friend-popup" class="popup" style="display:none;">
+    <span class="close" onclick="closeFriendPopup()">&times;</span>
+    <h3>Select Friend</h3>
+    <div id="friend-popup-content"></div>
+  </div>
 
-    function addCard() {
-      const id = `card-${++cardCounter}`;
-      const card = document.createElement("div");
-      card.className = "card";
-      card.setAttribute("data-id", id);
-      card.innerHTML = `
-        <button class="collapse-btn" onclick="toggleCollapse(event, '${id}')">-</button>
-        <div class="summary"></div>
-        <div class="details">
-          <div class="input-group">
-            <label>Bus Number</label>
-            <input type="text" class="bus-number" />
-          </div>
-          <div class="input-group">
-            <label>Route</label>
-            <input type="text" class="route-name" />
-          </div>
-          <div class="input-group">
-            <label>Start</label>
-            <input type="text" class="start" />
-          </div>
-          <div class="input-group">
-            <label>End</label>
-            <input type="text" class="end" />
-          </div>
-          <div class="fare-options">
-            ${[5,10,15,25].map(f => `<div class="fare-box" onclick="selectFare(this, ${f})">₹${f}</div>`).join('')}
-          </div>
-          <div style="margin-top:10px; text-align:center;">
-            <button class="glass-button" onclick="openFillPrevious(event, '${id}')">Fill Previous</button>
-          </div>
+  <!-- Export Options Modal -->
+  <div class="export-options-modal" id="export-options-modal">
+    <div class="export-options-content">
+      <div class="export-options-header">
+        <h3 class="export-options-title">Select Data to Export</h3>
+        <button class="close-modal" onclick="closeExportOptions()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <div class="export-options-list" id="export-options-list">
+        <!-- Options will be populated by JavaScript -->
+      </div>
+      
+      <div class="export-actions">
+        <button class="export-btn export-btn-secondary" onclick="selectAllExportOptions()">
+          <i class="fas fa-check-square"></i> Select All
+        </button>
+        <button class="export-btn export-btn-secondary" onclick="deselectAllExportOptions()">
+          <i class="fas fa-square"></i> Deselect All
+        </button>
+        <button class="export-btn export-btn-primary" onclick="exportSelectedData()">
+          <i class="fas fa-download"></i> Export Selected
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Payment Overlay -->
+  <div class="payment-overlay" id="payment-overlay">
+    <div class="payment-content">
+      <i class="fas fa-check-circle payment-icon"></i>
+      <h3 class="payment-title">Payment Successful</h3>
+      <div class="payment-details">
+        <div class="payment-row">
+          <span>Ticket Price:</span>
+          <span id="payment-original-price">₹0.00</span>
         </div>
-      `;
-      document.getElementById("cardContainer").appendChild(card);
-      selectCard(id);
-    }
+        <div class="payment-row payment-discount">
+          <span>10% Discount:</span>
+          <span id="payment-discount">-₹0.00</span>
+        </div>
+        <div class="payment-row total">
+          <span>Amount Paid:</span>
+          <span id="payment-final-price">₹0.00</span>
+        </div>
+        <div class="payment-row">
+          <span>Wallet Balance:</span>
+          <span id="payment-balance">₹0.00</span>
+        </div>
+      </div>
+      <button class="payment-button" onclick="closePaymentOverlay()">Continue</button>
+    </div>
+  </div>
 
-    function selectCard(id) {
-      selectedCardId = id;
-      document.querySelectorAll(".card").forEach(card => {
-        card.style.border = card.getAttribute("data-id") === id ? "2px solid #007bff" : "none";
+  <!-- Data Export/Import Bubble -->
+  <div class="data-bubble" id="data-bubble" onclick="handleBubbleClick(event)">
+    <i class="fas fa-exchange-alt" id="bubble-icon"></i>
+    <div class="bubble-tooltip" id="bubble-tooltip">Single click: Import | Double click: Export</div>
+  </div>
+
+  <input type="file" id="import-file" style="display: none;" accept=".json" onchange="importData(event)">
+
+  <div class="bottom-nav">
+    <a href="index.html" class="nav-item active">
+      <i class="fas fa-home"></i>
+      <span>Home</span>
+    </a>
+    <a href="ticket-history.html" class="nav-item">
+      <i class="fas fa-history"></i>
+      <span>History</span>
+      <span class="notification-badge" id="notification-badge" style="display: none;">0</span>
+    </a>
+    <a href="profile.html" class="nav-item" target="_blank">
+      <i class="fas fa-user"></i>
+      <span>Profile</span>
+    </a>
+  </div>
+
+  <script>
+// Delhi Bus Stops Data
+const delhiBusStops = [
+  "Rohini Sec-3", "Rohini Sec-4", "Rohini Sec-5", "Rohini Sec-6", "Rohini Sec-7",
+  "Pitampura", "Kohat Enclave", "Netaji Subhash Place", "Ashok Vihar", "Keshav Puram",
+  "Keshav Puram Metro Station", "Kamla Nagar", "Delhi University", "Vishwavidyalaya",
+  "Kashmere Gate", "ISBT", "Red Fort", "Jama Masjid", "Delhi Gate", "ITO", "India Gate",
+  "Connaught Place", "Rajiv Chowk", "Barakhamba Road", "Mandi House", "Supreme Court",
+  "Pragati Maidan", "ITO Metro Station", "Kalkaji Mandir", "Nehru Place", "Kailash Colony",
+  "Moolchand", "Lajpat Nagar", "Defence Colony", "South Extension", "Green Park",
+  "Hauz Khas", "AIIMS", "Safdarjung Hospital", "INA", "Rajouri Garden", "Tagore Garden",
+  "Janakpuri", "Uttam Nagar", "Dwarka", "Dwarka Sector-9", "Dwarka Sector-10",
+  "Dwarka Sector-11", "Dwarka Sector-12", "Dwarka Sector-13", "Dwarka Sector-14",
+  "Dwarka Sector-21", "Anand Vihar", "Anand Vihar ISBT", "Anand Vihar Railway Station",
+  "Vaishali", "Kaushambi", "Noida Sector-15", "Noida Sector-16", "Noida Sector-18",
+  "Noida Sector-62", "Greater Noida", "Ghaziabad", "Loni", "Shahdara", "Seelampur",
+  "Welcome", "Dilshad Garden", "Jhilmil", "Mansarovar Park", "Shahdara Terminal",
+  "Badarpur", "Tughlakabad", "Mohan Estate", "Sarita Vihar", "Okhla", "Jamia Millia",
+  "Okhla Bird Sanctuary", "Botanical Garden", "Noida Electronic City", "Gautam Buddha Nagar"
+];
+
+let cardCounter = 0;
+let selectedCardId = null;
+let bubbleClickCount = 0;
+let bubbleClickTimer = null;
+
+// Initialize app
+function initApp() {
+  loadTheme();
+  loadSavedCards();
+  generateSecretKey();
+  checkPendingTickets();
+  updateNotificationBadge();
+  setupServiceWorker();
+  initializeBubble();
+  initializeWallet();
+}
+
+// Initialize wallet
+function initializeWallet() {
+  // Initialize wallet balance if not exists
+  if (!localStorage.getItem('walletBalance')) {
+    localStorage.setItem('walletBalance', '0');
+  }
+  
+  // Update wallet display
+  updateWalletDisplay();
+}
+
+// Update wallet display
+function updateWalletDisplay() {
+  const balance = parseFloat(localStorage.getItem('walletBalance') || '0');
+  const balanceElement = document.getElementById('wallet-balance');
+  const borderElement = document.getElementById('wallet-border');
+  
+  balanceElement.textContent = `₹${balance.toFixed(2)}`;
+  
+  // Update border based on balance
+  borderElement.classList.remove('low', 'medium', 'high');
+  
+  if (balance < 50) {
+    borderElement.classList.add('low');
+    borderElement.style.width = '20%';
+  } else if (balance < 200) {
+    borderElement.classList.add('medium');
+    borderElement.style.width = '50%';
+  } else {
+    borderElement.classList.add('high');
+    borderElement.style.width = '100%';
+  }
+}
+
+// Navigate to wallet page
+function navigateToWallet() {
+  window.location.href = 'wallet.html';
+}
+
+// Initialize bubble
+function initializeBubble() {
+  const bubble = document.getElementById('data-bubble');
+  const icon = document.getElementById('bubble-icon');
+  const tooltip = document.getElementById('bubble-tooltip');
+  
+  // Set initial state
+  bubble.classList.add('import-mode');
+  icon.className = 'fas fa-file-import';
+  tooltip.textContent = 'Single click: Import | Double click: Export';
+}
+
+// Handle bubble click
+function handleBubbleClick(event) {
+  event.preventDefault();
+  
+  const bubble = document.getElementById('data-bubble');
+  const icon = document.getElementById('bubble-icon');
+  const tooltip = document.getElementById('bubble-tooltip');
+  
+  bubbleClickCount++;
+  
+  if (bubbleClickCount === 1) {
+    // First click - potential single click
+    bubbleClickTimer = setTimeout(() => {
+      // Single click detected - trigger import
+      bubbleClickCount = 0;
+      
+      // Change to import mode
+      bubble.classList.remove('export-mode');
+      bubble.classList.add('import-mode');
+      icon.className = 'fas fa-file-import';
+      tooltip.textContent = 'Importing data...';
+      
+      // Trigger file selection
+      document.getElementById('import-file').click();
+      
+      // Reset tooltip after a delay
+      setTimeout(() => {
+        tooltip.textContent = 'Single click: Import | Double click: Export';
+      }, 2000);
+    }, 300);
+  } else if (bubbleClickCount === 2) {
+    // Double click detected - trigger export
+    clearTimeout(bubbleClickTimer);
+    bubbleClickCount = 0;
+    
+    // Change to export mode
+    bubble.classList.remove('import-mode');
+    bubble.classList.add('export-mode');
+    icon.className = 'fas fa-file-export';
+    tooltip.textContent = 'Exporting data...';
+    
+    // Show export options modal
+    showExportOptions();
+    
+    // Reset tooltip after a delay
+    setTimeout(() => {
+      tooltip.textContent = 'Single click: Import | Double click: Export';
+    }, 2000);
+  }
+}
+
+// Generate secret key
+function generateSecretKey() {
+  if (!localStorage.getItem('secretKey')) {
+    const key = 'EXE-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+    localStorage.setItem('secretKey', key);
+  }
+}
+
+// Theme management
+function loadTheme() {
+  const theme = localStorage.getItem('theme') || 'light';
+  document.documentElement.setAttribute('data-theme', theme);
+  updateThemeIcon(theme);
+}
+
+function toggleTheme() {
+  const currentTheme = document.documentElement.getAttribute('data-theme');
+  const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', newTheme);
+  localStorage.setItem('theme', newTheme);
+  updateThemeIcon(newTheme);
+}
+
+function updateThemeIcon(theme) {
+  const icon = document.getElementById('theme-icon');
+  icon.className = theme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
+}
+
+// Generate Ticket ID like One Delhi: TDDMMYYYY + 10-char hex
+function generateOneDelhiTicketID() {
+  const now = new Date();
+  const dd = String(now.getDate()).padStart(2, '0');
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const yyyy = now.getFullYear();
+  const randomHex = Math.random().toString(16).substring(2, 12);
+  return `T${dd}${mm}${yyyy}${randomHex}`;
+}
+
+function createCard(id, savedData = null) {
+  const card = document.createElement("div");
+  card.className = "card";
+  if (savedData && savedData.collapsed) {
+    card.classList.add('collapsed');
+  }
+  card.setAttribute("data-id", id);
+  card.onclick = () => selectCard(id);
+
+  card.innerHTML = `
+    <button class="collapse-btn" onclick="toggleCard(event, '${id}')">
+      <i class="fas fa-compress"></i>
+    </button>
+    <button class="delete-btn" onclick="deleteCard(event, '${id}')">&times;</button>
+    
+    <div class="card-summary">
+      <h3>${savedData?.routeName || 'New Route'}</h3>
+      <p>${savedData?.start || 'Start'} → ${savedData?.end || 'End'}</p>
+      <p>Fare: ₹${savedData?.fare || '0'}</p>
+    </div>
+    
+    <div class="card-details">
+      <div class="input-group">
+        <label>Route Name</label>
+        <input type="text" class="route-name" placeholder="e.g., 957" value="${savedData?.routeName || ''}" />
+      </div>
+      <div class="input-group">
+        <label>Start</label>
+        <input type="text" class="start" value="${savedData?.start || ''}" oninput="showAutocomplete(this, 'start')" />
+        <div class="autocomplete-suggestions" id="autocomplete-${id}-start"></div>
+      </div>
+      <div class="input-group">
+        <label>End</label>
+        <input type="text" class="end" value="${savedData?.end || ''}" oninput="showAutocomplete(this, 'end')" />
+        <div class="autocomplete-suggestions" id="autocomplete-${id}-end"></div>
+      </div>
+      <div class="fare-options">
+        ${[5,10,15,25].map(f=>`<div class="fare-box" onclick="selectFare(this, ${f})">₹${f}</div>`).join('')}
+      </div>
+      <div style="text-align:center;margin-top:10px;">
+        <button onclick="openFillPrevious(event, '${id}')" class="glass-button">Fill Previous</button>
+      </div>
+    </div>
+  `;
+  
+  // Restore selected fare if exists
+  if (savedData?.fare) {
+    setTimeout(() => {
+      const fareBoxes = card.querySelectorAll('.fare-box');
+      fareBoxes.forEach(box => {
+        if (parseInt(box.textContent.replace('₹', '')) === savedData.fare) {
+          box.classList.add('selected');
+          card.querySelector('.fare-options').setAttribute('data-fare', savedData.fare);
+        }
       });
+    }, 100);
+  }
+  
+  return card;
+}
+
+function addCard(position = 'right') {
+  const id = `card-${++cardCounter}`;
+  const newCard = createCard(id);
+  const container = document.getElementById("cardContainer");
+  const addBtns = container.querySelectorAll(".add-card-btn");
+
+  if (position === 'left') {
+    container.insertBefore(newCard, addBtns[0].nextSibling);
+  } else {
+    container.insertBefore(newCard, addBtns[1]);
+  }
+
+  selectCard(id);
+  saveAllCards();
+}
+
+function selectCard(id) {
+  selectedCardId = id;
+  document.querySelectorAll(".card").forEach(card => {
+    card.classList.toggle('selected', card.getAttribute("data-id") === id);
+  });
+}
+
+function deleteCard(e, id) {
+  e.stopPropagation();
+  const card = document.querySelector(`[data-id='${id}']`);
+  card?.remove();
+  if (selectedCardId === id) selectedCardId = null;
+  saveAllCards();
+}
+
+function toggleCard(e, id) {
+  e.stopPropagation();
+  const card = document.querySelector(`[data-id='${id}']`);
+  card.classList.toggle('collapsed');
+  const icon = card.querySelector('.collapse-btn i');
+  icon.className = card.classList.contains('collapsed') ? 'fas fa-expand' : 'fas fa-compress';
+  saveAllCards();
+}
+
+function selectFare(box, amount) {
+  const siblings = box.parentNode.querySelectorAll('.fare-box');
+  siblings.forEach(b => b.classList.remove('selected'));
+  box.classList.add('selected');
+  box.parentNode.setAttribute('data-fare', amount);
+}
+
+function buySelectedTicket() {
+  if (!selectedCardId) return alert("Please select a card first.");
+
+  const card = document.querySelector(`[data-id='${selectedCardId}']`);
+  const route = card.querySelector(".route-name").value;
+  const start = card.querySelector(".start").value;
+  const end = card.querySelector(".end").value;
+  const fare = card.querySelector(".fare-options").getAttribute('data-fare');
+
+  if (!route || !start || !end || !fare)
+    return alert("Please fill all fields and select fare.");
+
+  // Calculate discounted price (10% discount)
+  const originalPrice = parseInt(fare);
+  const discountAmount = originalPrice * 0.1;
+  const finalPrice = originalPrice - discountAmount;
+  
+  // Check wallet balance
+  const currentBalance = parseFloat(localStorage.getItem('walletBalance') || '0');
+  
+  if (currentBalance < finalPrice) {
+    alert(`Insufficient balance. You need ₹${finalPrice.toFixed(2)} but only have ₹${currentBalance.toFixed(2)}. Please add money to your wallet.`);
+    return;
+  }
+  
+  // Prepare ticket data for payment gateway
+  const ticketData = {
+    routeName: route,
+    start: start,
+    end: end,
+    originalPrice: originalPrice,
+    discountAmount: discountAmount,
+    finalPrice: finalPrice,
+    ticketID: generateOneDelhiTicketID(),
+    owner: localStorage.getItem('secretKey'),
+    isForFriend: false
+  };
+  
+  // Store ticket data temporarily for payment gateway
+  sessionStorage.setItem('pendingTicket', JSON.stringify(ticketData));
+  
+  // Redirect to payment gateway
+  window.location.href = 'payment-gateway.html';
+}
+
+function bookForFriend() {
+  if (!selectedCardId) return alert("Please select a card first.");
+  
+  const friends = JSON.parse(localStorage.getItem('friends') || '[]');
+  if (friends.length === 0) {
+    alert('No friends added. Please add friends in your profile first.');
+    return;
+  }
+  
+  const popup = document.getElementById('friend-popup');
+  const content = document.getElementById('friend-popup-content');
+  
+  content.innerHTML = friends.map(friend => `
+    <div class="ticket" onclick="selectFriendForBooking('${friend.key}')">
+      <strong>${friend.name || friend.key}</strong><br>
+      <small>${friend.key}</small>
+    </div>
+  `).join('');
+  
+  popup.style.display = 'block';
+}
+
+function selectFriendForBooking(friendKey) {
+  closeFriendPopup();
+  
+  const card = document.querySelector(`[data-id='${selectedCardId}']`);
+  const route = card.querySelector(".route-name").value;
+  const start = card.querySelector(".start").value;
+  const end = card.querySelector(".end").value;
+  const fare = card.querySelector(".fare-options").getAttribute('data-fare');
+
+  if (!route || !start || !end || !fare)
+    return alert("Please fill all fields and select fare.");
+
+  // Calculate discounted price (10% discount)
+  const originalPrice = parseInt(fare);
+  const discountAmount = originalPrice * 0.1;
+  const finalPrice = originalPrice - discountAmount;
+  
+  // Check wallet balance
+  const currentBalance = parseFloat(localStorage.getItem('walletBalance') || '0');
+  
+  if (currentBalance < finalPrice) {
+    alert(`Insufficient balance. You need ₹${finalPrice.toFixed(2)} but only have ₹${currentBalance.toFixed(2)}. Please add money to your wallet.`);
+    return;
+  }
+  
+  // Prepare ticket data for payment gateway
+  const ticketData = {
+    routeName: route,
+    start: start,
+    end: end,
+    originalPrice: originalPrice,
+    discountAmount: discountAmount,
+    finalPrice: finalPrice,
+    ticketID: generateOneDelhiTicketID(),
+    owner: friendKey,
+    bookedBy: localStorage.getItem('secretKey'),
+    isForFriend: true
+  };
+  
+  // Store ticket data temporarily for payment gateway
+  sessionStorage.setItem('pendingTicket', JSON.stringify(ticketData));
+  
+  // Redirect to payment gateway
+  window.location.href = 'payment-gateway.html';
+}
+
+function closeFriendPopup() {
+  document.getElementById('friend-popup').style.display = 'none';
+}
+
+function saveAllCards() {
+  const cards = document.querySelectorAll(".card");
+  const saved = Array.from(cards).map(card => ({
+    routeName: card.querySelector(".route-name").value,
+    start: card.querySelector(".start").value,
+    end: card.querySelector(".end").value,
+    fare: card.querySelector(".fare-options").getAttribute('data-fare'),
+    collapsed: card.classList.contains('collapsed')
+  }));
+  localStorage.setItem("savedCards", JSON.stringify(saved));
+}
+
+function loadSavedCards() {
+  const saved = JSON.parse(localStorage.getItem("savedCards") || "[]");
+  if (saved.length) {
+    saved.forEach(c => {
+      const id = `card-${++cardCounter}`;
+      const card = createCard(id, c);
+      document.getElementById("cardContainer").insertBefore(card, document.querySelectorAll(".add-card-btn")[1]);
+    });
+  } else {
+    addCard();
+  }
+}
+
+function openFillPrevious(e, cardId) {
+  e.stopPropagation();
+  const popup = document.getElementById("popup");
+  const content = document.getElementById("popup-content");
+  
+  const all = JSON.parse(localStorage.getItem("tickets") || "[]").reverse().slice(0, 10);
+  if (!all.length) {
+    content.innerHTML = "<p style='padding:10px;'>No tickets found.</p>";
+  } else {
+    content.innerHTML = all.map(ticket => `
+      <div class="ticket" onclick="fillCardWithData('${cardId}', ${JSON.stringify(ticket).replace(/"/g, '&quot;')})">
+        <strong>${ticket.routeName}</strong> - ${ticket.route}<br>
+        <small>${new Date(ticket.time).toLocaleString()}</small>
+      </div>
+    `).join('');
+  }
+  
+  popup.style.display = "block";
+}
+
+function closePopup() {
+  document.getElementById("popup").style.display = "none";
+}
+
+function fillCardWithData(cardId, data) {
+  const card = document.querySelector(`[data-id="${cardId}"]`);
+  card.querySelector(".route-name").value = data.routeName;
+  const parts = data.route.split(" → ");
+  card.querySelector(".start").value = parts[0];
+  card.querySelector(".end").value = parts[1];
+
+  const fareBoxes = card.querySelectorAll(".fare-box");
+  fareBoxes.forEach(box => {
+    box.classList.remove("selected");
+    if (parseInt(box.textContent.replace("₹", "")) === data.price) {
+      box.classList.add("selected");
+      box.parentNode.setAttribute("data-fare", data.price);
     }
+  });
 
-    function toggleCollapse(e, id) {
-      e.stopPropagation();
-      const card = document.querySelector(`[data-id='${id}']`);
-      card.classList.toggle("collapsed");
-      const btn = card.querySelector(".collapse-btn");
-      btn.textContent = card.classList.contains("collapsed") ? "+" : "-";
+  closePopup();
+  selectCard(cardId);
+  saveAllCards();
+}
 
-      const summary = card.querySelector(".summary");
-      if (card.classList.contains("collapsed")) {
-        const number = card.querySelector(".bus-number").value;
-        const route = card.querySelector(".route-name").value;
-        const start = card.querySelector(".start").value;
-        const end = card.querySelector(".end").value;
-        const fareBox = card.querySelector(".fare-box.selected");
-        const fare = fareBox ? fareBox.textContent : 'N/A';
-        summary.innerHTML = `<b>${number}</b><br>${route}<br>${start} → ${end}<br>${fare}`;
+// Get recent searches from localStorage
+function getRecentSearches() {
+  return JSON.parse(localStorage.getItem('recentSearches') || '[]');
+}
+
+// Save to recent searches
+function saveToRecentSearches(start, end) {
+  const recentSearches = getRecentSearches();
+  
+  // Check if this search already exists
+  const existingIndex = recentSearches.findIndex(
+    search => search.start === start && search.end === end
+  );
+  
+  // Remove existing entry if found
+  if (existingIndex !== -1) {
+    recentSearches.splice(existingIndex, 1);
+  }
+  
+  // Add new search at the beginning
+  recentSearches.unshift({
+    start: start,
+    end: end,
+    timestamp: new Date().toISOString()
+  });
+  
+  // Keep only the most recent 10 searches
+  if (recentSearches.length > 10) {
+    recentSearches.splice(10);
+  }
+  
+  localStorage.setItem('recentSearches', JSON.stringify(recentSearches));
+}
+
+// Autocomplete functionality
+function showAutocomplete(input, type) {
+  const cardId = input.closest('.card').getAttribute('data-id');
+  const suggestionsDiv = document.getElementById(`autocomplete-${cardId}-${type}`);
+  const value = input.value.toLowerCase();
+  
+  if (value.length < 2) {
+    suggestionsDiv.classList.remove('show');
+    return;
+  }
+  
+  // Get recent searches
+  const recentSearches = getRecentSearches();
+  const recentValues = recentSearches.map(search => search[type]).filter(val => val);
+  
+  // Filter recent values based on input
+  const recentMatches = recentValues.filter(stop => 
+    stop.toLowerCase().includes(value)
+  );
+  
+  // Filter predefined bus stops based on input
+  const predefinedMatches = delhiBusStops.filter(stop => 
+    stop.toLowerCase().includes(value)
+  );
+  
+  // Remove duplicates between recent and predefined
+  const uniquePredefined = predefinedMatches.filter(stop => 
+    !recentMatches.includes(stop)
+  );
+  
+  let html = '';
+  
+  // Add recent searches section if there are matches
+  if (recentMatches.length > 0) {
+    html += `<div class="autocomplete-category">Recent Searches</div>`;
+    html += recentMatches.slice(0, 5).map(stop => 
+      `<div class="autocomplete-item recent" onclick="selectAutocomplete('${cardId}', '${type}', '${stop}')">
+        <i class="fas fa-history autocomplete-icon"></i>
+        ${stop}
+      </div>`
+    ).join('');
+  }
+  
+  // Add predefined bus stops section if there are matches
+  if (uniquePredefined.length > 0) {
+    html += `<div class="autocomplete-category">Bus Stops</div>`;
+    html += uniquePredefined.slice(0, 5).map(stop => 
+      `<div class="autocomplete-item" onclick="selectAutocomplete('${cardId}', '${type}', '${stop}')">
+        <i class="fas fa-map-marker-alt autocomplete-icon"></i>
+        ${stop}
+      </div>`
+    ).join('');
+  }
+  
+  if (html) {
+    suggestionsDiv.innerHTML = html;
+    suggestionsDiv.classList.add('show');
+  } else {
+    suggestionsDiv.classList.remove('show');
+  }
+}
+
+function selectAutocomplete(cardId, type, value) {
+  const input = document.querySelector(`[data-id="${cardId}"] .${type}`);
+  input.value = value;
+  document.getElementById(`autocomplete-${cardId}-${type}`).classList.remove('show');
+  saveAllCards();
+}
+
+// Close autocomplete when clicking outside
+document.addEventListener('click', function(e) {
+  if (!e.target.matches('input')) {
+    document.querySelectorAll('.autocomplete-suggestions').forEach(div => {
+      div.classList.remove('show');
+    });
+  }
+});
+
+// Confetti animation
+function showConfetti() {
+  const colors = ['#c7342a', '#63d0e8', '#4CAF50', '#FF9800', '#9C27B0'];
+  for (let i = 0; i < 50; i++) {
+    setTimeout(() => {
+      const confetti = document.createElement('div');
+      confetti.className = 'confetti';
+      confetti.style.left = Math.random() * 100 + '%';
+      confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+      confetti.style.animationDelay = Math.random() * 0.5 + 's';
+      document.body.appendChild(confetti);
+      
+      setTimeout(() => confetti.remove(), 3000);
+    }, i * 50);
+  }
+}
+
+// Check for pending tickets
+function checkPendingTickets() {
+  const tickets = JSON.parse(localStorage.getItem("tickets") || "[]");
+  const myKey = localStorage.getItem('secretKey');
+  const pendingTickets = tickets.filter(t => t.owner === myKey && t.pending);
+  
+  if (pendingTickets.length > 0) {
+    setTimeout(() => {
+      pendingTickets.forEach(ticket => {
+        const bookedBy = ticket.bookedBy;
+        const notification = confirm(`${bookedBy} booked a ticket for you! Accept?`);
+        
+        if (notification) {
+          ticket.pending = false;
+          localStorage.setItem("tickets", JSON.stringify(tickets));
+          updateNotificationBadge();
+        } else {
+          // Remove declined ticket
+          const index = tickets.indexOf(ticket);
+          tickets.splice(index, 1);
+          localStorage.setItem("tickets", JSON.stringify(tickets));
+          updateNotificationBadge();
+        }
+      });
+    }, 1000);
+  }
+}
+
+function updateNotificationBadge() {
+  const tickets = JSON.parse(localStorage.getItem("tickets") || "[]");
+  const myKey = localStorage.getItem('secretKey');
+  const pendingCount = tickets.filter(t => t.owner === myKey && t.pending).length;
+  
+  const badge = document.getElementById('notification-badge');
+  if (pendingCount > 0) {
+    badge.textContent = pendingCount;
+    badge.style.display = 'flex';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+// Export Options Modal Functions
+function showExportOptions() {
+  const modal = document.getElementById('export-options-modal');
+  const optionsList = document.getElementById('export-options-list');
+  
+  // Get data counts
+  const tickets = JSON.parse(localStorage.getItem('tickets') || '[]');
+  const friends = JSON.parse(localStorage.getItem('friends') || '[]');
+  const savedCards = JSON.parse(localStorage.getItem('savedCards') || '[]');
+  const achievements = JSON.parse(localStorage.getItem('achievements') || '{}');
+  const recentSearches = JSON.parse(localStorage.getItem('recentSearches') || '[]');
+  
+  // Populate export options
+  optionsList.innerHTML = `
+    <div class="export-option">
+      <input type="checkbox" class="export-option-checkbox" id="export-tickets" checked>
+      <div class="export-option-info">
+        <div class="export-option-name">Tickets</div>
+        <div class="export-option-desc">All your booked tickets</div>
+      </div>
+      <div class="export-option-count">${tickets.length}</div>
+    </div>
+    
+    <div class="export-option">
+      <input type="checkbox" class="export-option-checkbox" id="export-friends" checked>
+      <div class="export-option-info">
+        <div class="export-option-name">Friends</div>
+        <div class="export-option-desc">Your friends list</div>
+      </div>
+      <div class="export-option-count">${friends.length}</div>
+    </div>
+    
+    <div class="export-option">
+      <input type="checkbox" class="export-option-checkbox" id="export-saved-cards" checked>
+      <div class="export-option-info">
+        <div class="export-option-name">Saved Cards</div>
+        <div class="export-option-desc">Your saved route cards</div>
+      </div>
+      <div class="export-option-count">${savedCards.length}</div>
+    </div>
+    
+    <div class="export-option">
+      <input type="checkbox" class="export-option-checkbox" id="export-achievements" checked>
+      <div class="export-option-info">
+        <div class="export-option-name">Achievements</div>
+        <div class="export-option-desc">Your unlocked achievements</div>
+      </div>
+      <div class="export-option-count">${Object.keys(achievements).length}</div>
+    </div>
+    
+    <div class="export-option">
+      <input type="checkbox" class="export-option-checkbox" id="export-recent-searches" checked>
+      <div class="export-option-info">
+        <div class="export-option-name">Recent Searches</div>
+        <div class="export-option-desc">Your recent route searches</div>
+      </div>
+      <div class="export-option-count">${recentSearches.length}</div>
+    </div>
+    
+    <div class="export-option">
+      <input type="checkbox" class="export-option-checkbox" id="export-theme" checked>
+      <div class="export-option-info">
+        <div class="export-option-name">Theme Settings</div>
+        <div class="export-option-desc">Your theme preferences</div>
+      </div>
+      <div class="export-option-count">1</div>
+    </div>
+    
+    <div class="export-option">
+      <input type="checkbox" class="export-option-checkbox" id="export-profile" checked>
+      <div class="export-option-info">
+        <div class="export-option-name">Profile Information</div>
+        <div class="export-option-desc">Username and secret key</div>
+      </div>
+      <div class="export-option-count">1</div>
+    </div>
+    
+    <div class="export-option">
+      <input type="checkbox" class="export-option-checkbox" id="export-wallet" checked>
+      <div class="export-option-info">
+        <div class="export-option-name">Wallet Balance</div>
+        <div class="export-option-desc">Your wallet balance</div>
+      </div>
+      <div class="export-option-count">1</div>
+    </div>
+  `;
+  
+  // Show modal
+  modal.classList.add('show');
+}
+
+function closeExportOptions() {
+  const modal = document.getElementById('export-options-modal');
+  modal.classList.remove('show');
+}
+
+function selectAllExportOptions() {
+  document.querySelectorAll('.export-option-checkbox').forEach(checkbox => {
+    checkbox.checked = true;
+  });
+}
+
+function deselectAllExportOptions() {
+  document.querySelectorAll('.export-option-checkbox').forEach(checkbox => {
+    checkbox.checked = false;
+  });
+}
+
+function exportSelectedData() {
+  const data = {};
+  
+  // Collect selected data
+  if (document.getElementById('export-tickets').checked) {
+    data.tickets = JSON.parse(localStorage.getItem('tickets') || '[]');
+  }
+  
+  if (document.getElementById('export-friends').checked) {
+    data.friends = JSON.parse(localStorage.getItem('friends') || '[]');
+  }
+  
+  if (document.getElementById('export-saved-cards').checked) {
+    data.savedCards = JSON.parse(localStorage.getItem('savedCards') || '[]');
+  }
+  
+  if (document.getElementById('export-achievements').checked) {
+    data.achievements = JSON.parse(localStorage.getItem('achievements') || '{}');
+  }
+  
+  if (document.getElementById('export-recent-searches').checked) {
+    data.recentSearches = JSON.parse(localStorage.getItem('recentSearches') || '[]');
+  }
+  
+  if (document.getElementById('export-theme').checked) {
+    data.theme = localStorage.getItem('theme') || 'light';
+  }
+  
+  if (document.getElementById('export-profile').checked) {
+    data.secretKey = localStorage.getItem('secretKey');
+    data.username = localStorage.getItem('username');
+  }
+  
+  if (document.getElementById('export-wallet').checked) {
+    data.walletBalance = localStorage.getItem('walletBalance') || '0';
+  }
+  
+  // Add metadata
+  data.exportDate = new Date().toISOString();
+  data.exportVersion = '1.0';
+  
+  // Open in new window instead of downloading
+  const dataStr = JSON.stringify(data, null, 2);
+  const newWindow = window.open();
+  newWindow.document.write('<pre>' + dataStr + '</pre>');
+  
+  // Close modal and show notification
+  closeExportOptions();
+  showNotification('Data exported successfully!');
+}
+
+// Import data function
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      
+      if (data.tickets) localStorage.setItem("tickets", JSON.stringify(data.tickets));
+      if (data.friends) localStorage.setItem("friends", JSON.stringify(data.friends));
+      if (data.savedCards) localStorage.setItem("savedCards", JSON.stringify(data.savedCards));
+      if (data.achievements) localStorage.setItem("achievements", JSON.stringify(data.achievements));
+      if (data.recentSearches) localStorage.setItem("recentSearches", JSON.stringify(data.recentSearches));
+      if (data.theme) localStorage.setItem("theme", data.theme);
+      if (data.secretKey) localStorage.setItem("secretKey", data.secretKey);
+      if (data.username) localStorage.setItem("username", data.username);
+      if (data.walletBalance) localStorage.setItem("walletBalance", data.walletBalance);
+      
+      showNotification('Data imported successfully! Refreshing page...');
+      setTimeout(() => location.reload(), 1500);
+    } catch (error) {
+      showNotification('Error importing data. Please check the file format.', 'error');
+    }
+  };
+  reader.readAsText(file);
+}
+
+// Show notification
+function showNotification(message, type = 'success') {
+  const notification = document.createElement('div');
+  notification.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: ${type === 'success' ? 'var(--primary)' : '#ff4d4d'};
+    color: white;
+    padding: 15px 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px var(--shadow);
+    z-index: 10000;
+    animation: slideInRight 0.5s ease-out;
+    max-width: 300px;
+  `;
+  notification.textContent = message;
+  document.body.appendChild(notification);
+  
+  setTimeout(() => notification.remove(), 3000);
+}
+
+// Achievements system
+function updateAchievements(type, value) {
+  let achievements = JSON.parse(localStorage.getItem("achievements") || "{}");
+  
+  switch(type) {
+    case 'tickets_booked':
+      if (value >= 1 && !achievements.first_ticket) {
+        achievements.first_ticket = true;
+        showAchievement('First Ticket!', '🎫');
+      }
+      if (value >= 5 && !achievements.five_tickets) {
+        achievements.five_tickets = true;
+        showAchievement('Five Tickets!', '🎟️');
+      }
+      if (value >= 10 && !achievements.ten_tickets) {
+        achievements.ten_tickets = true;
+        showAchievement('Ten Tickets!', '🎊');
+      }
+      break;
+    case 'friend_added':
+      if (value >= 1 && !achievements.first_friend) {
+        achievements.first_friend = true;
+        showAchievement('First Friend!', '👥');
+      }
+      break;
+  }
+  
+  localStorage.setItem("achievements", JSON.stringify(achievements));
+}
+
+function showAchievement(title, icon) {
+  const popup = document.createElement('div');
+  popup.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--primary);
+    color: white;
+    padding: 15px 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px var(--shadow);
+    z-index: 10000;
+    animation: slideInRight 0.5s ease-out;
+  `;
+  popup.innerHTML = `<div style="font-size: 24px; margin-bottom: 5px;">${icon}</div><div style="font-weight: bold;">${title}</div>`;
+  document.body.appendChild(popup);
+  
+  setTimeout(() => popup.remove(), 3000);
+}
+
+// Service Worker setup
+function setupServiceWorker() {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('service-worker.js')
+      .then(reg => console.log("Service Worker registered"))
+      .catch(err => console.error("Service Worker failed", err));
+  }
+}
+
+// Check ticket expiry
+function checkTicketExpiry() {
+  const tickets = JSON.parse(localStorage.getItem("tickets") || "[]");
+  const now = new Date();
+  
+  tickets.forEach(ticket => {
+    const ticketTime = new Date(ticket.time);
+    const minutesDiff = (now - ticketTime) / (1000 * 60);
+    
+    if (minutesDiff > 30 && ticket.status === 'VALID') {
+      ticket.status = 'INVALID';
+      localStorage.setItem("tickets", JSON.stringify(tickets));
+    } else if (minutesDiff > 25 && minutesDiff <= 30 && ticket.status === 'VALID') {
+      // Show 5-minute warning
+      if (!ticket.warned) {
+        showExpiryWarning(ticket);
+        ticket.warned = true;
+        localStorage.setItem("tickets", JSON.stringify(tickets));
       }
     }
+  });
+}
 
-    function selectFare(box, amount) {
-      const siblings = box.parentNode.querySelectorAll('.fare-box');
-      siblings.forEach(b => b.classList.remove('selected'));
-      box.classList.add('selected');
-      box.parentNode.setAttribute('data-fare', amount);
-    }
+function showExpiryWarning(ticket) {
+  const warning = document.createElement('div');
+  warning.style.cssText = `
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #ff9800;
+    color: white;
+    padding: 15px 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px var(--shadow);
+    z-index: 10000;
+    animation: slideUp 0.5s ease-out;
+  `;
+  warning.innerHTML = `
+    <div style="font-weight: bold;">⚠️ Ticket Expiring Soon!</div>
+    <div style="font-size: 14px;">Route ${ticket.routeName} expires in 5 minutes</div>
+  `;
+  document.body.appendChild(warning);
+  
+  setTimeout(() => warning.remove(), 5000);
+}
 
-    function buySelectedTicket() {
-      if (!selectedCardId) return alert("Select a card");
-      const card = document.querySelector(`[data-id='${selectedCardId}']`);
-      const number = card.querySelector(".bus-number").value;
-      const route = card.querySelector(".route-name").value;
-      const start = card.querySelector(".start").value;
-      const end = card.querySelector(".end").value;
-      const fareBox = card.querySelector(".fare-box.selected");
-      const fare = fareBox ? parseInt(fareBox.textContent.replace('₹','')) : null;
+// Initialize app when DOM is loaded
+document.addEventListener('DOMContentLoaded', initApp);
 
-      if (!number || !route || !start || !end || !fare) return alert("Fill all fields and select fare");
+// Check ticket expiry every minute
+setInterval(checkTicketExpiry, 60000);
 
-      const ticket = {
-        id: generateOneDelhiTicketID(),
-        number, routeName: route, route: `${start} → ${end}`,
-        time: new Date().toISOString(),
-        price: fare,
-      };
-      const all = JSON.parse(localStorage.getItem("tickets") || "[]");
-      all.push(ticket);
-      localStorage.setItem("tickets", JSON.stringify(all));
-      alert("Ticket saved: " + ticket.id);
-    }
-
-    function openFillPrevious(e, cardId) {
-      e.stopPropagation();
-      const popup = document.getElementById("fillPreviousPopup");
-      popup.style.display = "block";
-      popup.setAttribute("data-target", cardId);
-      const list = popup.querySelector(".ticket-list");
-      list.innerHTML = "";
-      const all = JSON.parse(localStorage.getItem("tickets") || "[]").reverse().slice(0, 10);
-      if (!all.length) {
-        list.innerHTML = "<p>No tickets found.</p>";
-      } else {
-        all.forEach(ticket => {
-          const item = document.createElement("div");
-          item.className = "ticket-item";
-          item.innerHTML = `<b>${ticket.number}</b> - ${ticket.routeName}<br><small>${ticket.route}</small>`;
-          item.onclick = () => fillCardWithData(cardId, ticket);
-          list.appendChild(item);
-        });
-      }
-    }
-
-    function fillCardWithData(cardId, data) {
-      const card = document.querySelector(`[data-id='${cardId}']`);
-      card.querySelector(".bus-number").value = data.number;
-      card.querySelector(".route-name").value = data.routeName;
-      const [start, end] = data.route.split(" → ");
-      card.querySelector(".start").value = start;
-      card.querySelector(".end").value = end;
-      const fareBoxes = card.querySelectorAll(".fare-box");
-      fareBoxes.forEach(b => {
-        b.classList.remove("selected");
-        if (parseInt(b.textContent.replace('₹','')) === data.price) b.classList.add("selected");
-      });
-      document.getElementById("fillPreviousPopup").style.display = "none";
-    }
-
-    window.onload = () => addCard();
-  </script></body>
+// Add CSS animation for slideInRight
+const style = document.createElement('style');
+style.textContent = `
+  @keyframes slideInRight {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+`;
+document.head.appendChild(style);
+  </script>
+</body>
 </html>

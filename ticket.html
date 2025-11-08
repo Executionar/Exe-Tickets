@@ -16,8 +16,21 @@
     body {
       margin: 0;
       font-family: 'Roboto', sans-serif;
-      background-color: #121212;
+      background-color: #424242; /* Changed from black to grey */
       padding: 0 16px;
+      filter: grayscale(100%);
+      transition: filter 0.5s ease, background-color 0.5s ease;
+      min-height: 100vh;
+      position: relative;
+      overflow: hidden; /* Prevent scrolling */
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    body.validated {
+      filter: grayscale(0%);
+      background-color: #c7342a;
     }
 
     .top-bar {
@@ -38,18 +51,31 @@
       margin-left: 12px;
     }
 
+    .content-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start; /* Changed from center to flex-start */
+      align-items: center;
+      padding-top: 20vh; /* Changed from 15vh to 20vh (5% down from original) */
+      padding-bottom: 70px; /* Space for footer */
+      position: relative; /* Added for positioning validation box */
+    }
+
     .ticket-box {
       background: white;
-      margin: 20px auto;
-      max-width: 340px;
-      height: 100%;
+      width: calc(100vw - 70px); /* 25px margin on each side */
+      max-width: 350px; /* Maximum width for larger screens */
       border-radius: 6px;
       padding: 18px;
-      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
-      position: relative;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, 25%);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12); /* Made shadow lighter */
+      transition: box-shadow 0.5s ease;
+      position: relative; /* Added for positioning validation box */
+      margin-bottom: 80px; /* Added space for validation box */
+    }
+
+    .ticket-box.validated {
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.18); /* Made shadow lighter for validated state */
     }
 
     .ticket-box h2 {
@@ -90,6 +116,23 @@
       text-transform: capitalize;
       font-size: 18px;
       margin-top: 4px;
+      position: relative;
+    }
+
+    .value.editable {
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+
+    .value.editable:hover {
+      background-color: rgba(199, 52, 42, 0.1);
+    }
+
+    .value.editing {
+      background-color: rgba(199, 52, 42, 0.2);
+      outline: 1px solid #c7342a;
     }
 
     .ticket-id {
@@ -100,7 +143,7 @@
     }
 
     .qr-button {
-      background: #63d0e8;
+      background: #424242; /* Changed to match body background */
       color: white;
       text-align: center;
       margin-top: 10px;
@@ -112,6 +155,11 @@
       align-items: center;
       justify-content: center;
       border: none;
+      transition: background-color 0.5s ease;
+    }
+
+    .qr-button.validated {
+      background: #c7342a; /* Changed to match validated body background */
     }
 
     .qr-button img {
@@ -119,23 +167,39 @@
       width: 24px;
       height: 24px;
       filter: brightness(0) invert(1);
+      display: none;
     }
 
-    .invalid-stamp {
+    .qr-button.validated img {
+      display: block;
+    }
+
+    .validated-at {
+      background: white;
+      color: #c7342a;
+      border-radius: 8px;
+      padding: 10px 15px;
       position: absolute;
-      top: 45%;
+      top: calc(100% + 25px); /* Changed from 20px to 25px (5% down from original) */
       left: 50%;
-      transform: translate(-50%, -50%) rotate(-20deg);
-      font-size: 48px;
-      color: red;
-      font-weight: bold;
-      opacity: 0.15;
+      transform: translateX(-50%);
+      width: calc(100% - 40px); /* Narrower than ticket box */
+      max-width: 270px; /* Maximum width for larger screens */
+      text-align: center;
+      font-size: 16px;
+      font-weight: 600;
       display: none;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); /* Lighter shadow than ticket box */
+      z-index: 100;
+    }
+
+    .validated-at.show {
+      display: block;
     }
 
     .ondc-logo {
       position: absolute;
-      bottom: 20px;
+      bottom: 20px; /* Changed from 70px to 50px (20px above footer) */
       left: 50%;
       transform: translate(-50%);
       width: 130px;
@@ -153,6 +217,339 @@
       position: fixed;
       bottom: 0;
       left: 0;
+      z-index: 1000;
+    }
+
+    /* Minimal magical swap animation styles */
+    .magic-swap {
+      position: relative;
+      overflow: visible;
+    }
+
+    .value.swapping {
+      animation: gentle-fade 0.6s ease-in-out;
+    }
+
+    @keyframes gentle-fade {
+      0% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      50% {
+        opacity: 0.3;
+        transform: translateY(-3px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .magic-glow {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(199, 52, 42, 0.3) 0%, transparent 70%);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .magic-glow.active {
+      animation: glow-pulse 0.6s ease-out;
+    }
+
+    @keyframes glow-pulse {
+      0% {
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 0.8;
+      }
+      100% {
+        transform: translate(-50%, -50%) scale(2);
+        opacity: 0;
+      }
+    }
+
+    .magic-sparkle {
+      position: absolute;
+      width: 3px;
+      height: 3px;
+      background: #c7342a;
+      border-radius: 50%;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 11;
+    }
+
+    .magic-sparkle.active {
+      animation: sparkle-twinkle 0.6s ease-out;
+    }
+
+    @keyframes sparkle-twinkle {
+      0% {
+        transform: translate(0, 0) scale(0);
+        opacity: 0;
+      }
+      50% {
+        transform: translate(var(--tx), var(--ty)) scale(1);
+        opacity: 1;
+      }
+      100% {
+        transform: translate(var(--tx2), var(--ty2)) scale(0);
+        opacity: 0;
+      }
+    }
+
+    .swap-icon {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #c7342a;
+      font-size: 16px;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 12;
+    }
+
+    .swap-icon.active {
+      animation: icon-appear 0.6s ease-out;
+    }
+
+    @keyframes icon-appear {
+      0% {
+        transform: translate(-50%, -50%) scale(0) rotate(0deg);
+        opacity: 0;
+      }
+      50% {
+        transform: translate(-50%, -50%) scale(1.2) rotate(180deg);
+        opacity: 1;
+      }
+      100% {
+        transform: translate(-50%, -50%) scale(0) rotate(360deg);
+        opacity: 0;
+      }
+    }
+
+    /* Date Time Picker Modal */
+    .datetime-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .datetime-modal.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .datetime-content {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      width: 90%;
+      max-width: 320px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      transform: scale(0.9);
+      transition: all 0.3s ease;
+    }
+
+    .datetime-modal.show .datetime-content {
+      transform: scale(1);
+    }
+
+    .datetime-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .datetime-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .datetime-close {
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      color: #666;
+      transition: color 0.3s ease;
+    }
+
+    .datetime-close:hover {
+      color: #c7342a;
+    }
+
+    .datetime-group {
+      margin-bottom: 15px;
+    }
+
+    .datetime-label {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #555;
+    }
+
+    .datetime-input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 16px;
+      transition: border-color 0.3s ease;
+    }
+
+    .datetime-input:focus {
+      outline: none;
+      border-color: #c7342a;
+    }
+
+    .datetime-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .datetime-btn {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .datetime-btn-cancel {
+      background: #f5f5f5;
+      color: #666;
+    }
+
+    .datetime-btn-cancel:hover {
+      background: #e0e0e0;
+    }
+
+    .datetime-btn-save {
+      background: #c7342a;
+      color: white;
+    }
+
+    .datetime-btn-save:hover {
+      background: #b02e24;
+    }
+
+    .time-input-group {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .time-input {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 16px;
+      text-align: center;
+      transition: border-color 0.3s ease;
+    }
+
+    .time-input:focus {
+      outline: none;
+      border-color: #c7342a;
+    }
+
+    .time-separator {
+      font-size: 18px;
+      font-weight: 500;
+      color: #666;
+    }
+
+    .period-selector {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .period-option {
+      flex: 1;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .period-option.selected {
+      background: #c7342a;
+      color: white;
+      border-color: #c7342a;
+    }
+
+    /* Fare Selector Popup */
+    .fare-popup {
+      position: absolute;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      padding: 10px;
+      z-index: 1000;
+      min-width: 120px;
+      display: none;
+    }
+
+    .fare-popup.show {
+      display: block;
+    }
+
+    .fare-option {
+      padding: 8px 12px;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: background-color 0.2s ease;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .fare-option:hover {
+      background-color: rgba(199, 52, 42, 0.1);
+    }
+
+    .fare-option.selected {
+      background-color: rgba(199, 52, 42, 0.2);
+      font-weight: 500;
+    }
+
+    .fare-value {
+      font-weight: 500;
+    }
+
+    .fare-discount {
+      font-size: 12px;
+      color: #666;
     }
   </style>
 </head>
@@ -163,13 +560,13 @@
     <i class="fa-solid fa-clock-rotate-left"></i> &nbsp;&nbsp;All Tickets
   </a>
 </div>
-  
 
+<div class="content-container">
   <div class="ticket-box" id="ticket-box">
     <h2>Transport Dept. of Delhi</h2>
 
     <div class="top-row">
-      <div class="top-left" id="plate-number">DL1PD8765</div>
+      <div class="top-left" id="plate-number"></div> <!-- Initially empty -->
       <div class="top-right">₹<span id="fare">15.0</span></div>
     </div>
 
@@ -178,18 +575,18 @@
     <div class="row">
       <div>
         <div class="label">Bus Route</div>
-        <div class="value" id="route">957</div>
+        <div class="value editable" id="route" contenteditable="false">957</div>
       </div>
       <div style="text-align:right;">
         <div class="label">Fare</div>
-        <div class="value" id="calculated-fare">₹13.5</div>
+        <div class="value editable" id="calculated-fare">₹13.5</div>
       </div>
     </div>
 
     <div class="row">
       <div>
         <div class="label">Booking Time</div>
-        <div class="value" id="time">07 Jul, 25 | 05:30 PM</div>
+        <div class="value" id="time" ondblclick="openDateTimePicker()">07 Jul, 25 | 05:30 PM</div>
       </div>
       <div style="text-align:right;">
         <div class="label">Bus Tickets</div>
@@ -198,49 +595,101 @@
     </div>
 
     <div class="row">
-      <div>
+      <div class="magic-swap">
         <div class="label">Starting stop</div>
-        <div class="value" id="start">Rohini Sec-3</div>
+        <div class="value" id="start" ondblclick="swapStops()">Rohini Sec-3</div>
+        <div class="magic-glow"></div>
+        <div class="swap-icon"><i class="fas fa-exchange-alt"></i></div>
       </div>
     </div>
 
     <div class="row">
-      <div>
+      <div class="magic-swap">
         <div class="label">Ending stop</div>
-        <div class="value" id="end">Anand Vihar</div>
+        <div class="value" id="end" ondblclick="swapStops()">Anand Vihar</div>
+        <div class="magic-glow"></div>
+        <div class="swap-icon"><i class="fas fa-exchange-alt"></i></div>
       </div>
     </div>
 
     <div class="ticket-id" id="ticket-id">T31052025c6fe337b19</div>
-    <div class="qr-button" id="qrBtn">
-      <img src="qr-code.png" alt="QR"> Show QR code
+    <div class="qr-button" id="qrBtn" onclick="validateTicket()">
+      <img src="qr-code.png" alt="QR"> Validate
     </div>
-    <div class="invalid-stamp" id="invalid">INVALID</div>
+    
+    <!-- Moved validation box inside ticket-box -->
+    <div class="validated-at" id="validated-at">
+      Validated At: <span id="validated-time">dd mmm, yy | hh:mm AM/PM</span>
+    </div>
   </div>
+</div>
 
-  <img src="ondc-network-vertical.png" class="ondc-logo" alt="ONDC Logo" />
-  <div class="footer-bar">Powered by IIIT Delhi</div>
+<img src="ondc-network-vertical.png" class="ondc-logo" alt="ONDC Logo" />
+<div class="footer-bar">Powered by IIIT Delhi</div>
+
+<!-- Date Time Picker Modal -->
+<div class="datetime-modal" id="datetime-modal">
+  <div class="datetime-content">
+    <div class="datetime-header">
+      <h3 class="datetime-title">Select Date & Time</h3>
+      <button class="datetime-close" onclick="closeDateTimePicker()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    
+    <div class="datetime-group">
+      <label class="datetime-label">Date</label>
+      <input type="date" id="date-input" class="datetime-input">
+    </div>
+    
+    <div class="datetime-group">
+      <label class="datetime-label">Time</label>
+      <div class="time-input-group">
+        <input type="number" id="hour-input" class="time-input" min="1" max="12" placeholder="HH">
+        <span class="time-separator">:</span>
+        <input type="number" id="minute-input" class="time-input" min="0" max="59" placeholder="MM">
+      </div>
+      <div class="period-selector">
+        <div class="period-option" id="am-option" onclick="selectPeriod('AM')">AM</div>
+        <div class="period-option selected" id="pm-option" onclick="selectPeriod('PM')">PM</div>
+      </div>
+    </div>
+    
+    <div class="datetime-actions">
+      <button class="datetime-btn datetime-btn-cancel" onclick="closeDateTimePicker()">Cancel</button>
+      <button class="datetime-btn datetime-btn-save" onclick="saveDateTime()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Fare Selector Popup -->
+<div class="fare-popup" id="fare-popup">
+  <div class="fare-option" data-fare="5" data-discount="4.5">
+    <span class="fare-value">₹5</span>
+    <span class="fare-discount">₹4.5</span>
+  </div>
+  <div class="fare-option" data-fare="10" data-discount="9">
+    <span class="fare-value">₹10</span>
+    <span class="fare-discount">₹9</span>
+  </div>
+  <div class="fare-option" data-fare="15" data-discount="13.5">
+    <span class="fare-value">₹15</span>
+    <span class="fare-discount">₹13.5</span>
+  </div>
+  <div class="fare-option" data-fare="25" data-discount="22.5">
+    <span class="fare-value">₹25</span>
+    <span class="fare-discount">₹22.5</span>
+  </div>
+</div>
+
 <script>
-  const color = localStorage.getItem("ticketColor");
-  const ticketBox = document.getElementById("busColor");
-
-  // Set background color based on bus type
-  const colorMap = {
-    "green": ["#43a047", "#43a047"],
-    "blue": ["#2196f3", "#2196f3"],
-    "sky-blue": ["#52c4d6", "#52c4d6"],
-    "red": ["#ed5855", "#ed5855"],
-    "orange": ["#f8784a", "#f8784a"]
-  };
-  if (colorMap[color]) {
-    ticketBox.style.background = colorMap[color][0];
-    document.getElementById("qrBtn").style.background = colorMap[color][1];
-  }
-
   const params = new URLSearchParams(window.location.search);
   const id = params.get("id");
   const tickets = JSON.parse(localStorage.getItem("tickets")) || [];
   const ticket = tickets.find(t => t.id == id);
+
+  let currentDateTime = null;
+  let selectedPeriod = 'PM';
 
   if (ticket) {
     document.getElementById("fare").textContent = parseFloat(ticket.price).toFixed(1) || "15.0";
@@ -249,40 +698,419 @@
 
     // Format booking time
     if (ticket.time) {
-      const ticketDate = new Date(ticket.time);
-      const day = ticketDate.getDate().toString().padStart(2, '0');
-      const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-      const month = monthNames[ticketDate.getMonth()];
-      const year = ticketDate.getFullYear().toString().slice(-2);
-      let hours = ticketDate.getHours();
-      const minutes = ticketDate.getMinutes().toString().padStart(2, '0');
-      const ampm = hours >= 12 ? 'PM' : 'AM';
-      hours = hours % 12 || 12;
-      const formattedTime = `${day} ${month}, ${year} | ${hours}:${minutes} ${ampm}`;
-      document.getElementById("time").textContent = formattedTime;
+      currentDateTime = new Date(ticket.time);
+      updateBookingTimeDisplay(currentDateTime);
     }
 
     const stops = (ticket.route || "").split("→");
     document.getElementById("start").textContent = stops[0]?.trim() || "";
     document.getElementById("end").textContent = stops[1]?.trim() || "";
     document.getElementById("ticket-id").textContent = ticket.ticketID || "";
-    document.getElementById("plate-number").textContent = (ticket.plate || "") + (ticket.number || "");
 
-    // Expiry check
-    const expired = checkExpired(ticket.time);
-    document.getElementById("invalid").style.display = expired ? "block" : "none";
+    // Check if ticket is already validated
+    if (ticket.validated) {
+      applyValidatedState();
+      
+      // Show validation time if it exists
+      if (ticket.validatedAt) {
+        displayValidationTime(ticket.validatedAt);
+      }
+    }
   }
 
-  function checkExpired(timeStr) {
-    const ticketDate = new Date(timeStr);
-    const now = new Date();
-    return ((now - ticketDate) / 60000) > 45; // Expired after 45 minutes
+  function updateBookingTimeDisplay(date) {
+    const day = date.getDate().toString().padStart(2, '0');
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const month = monthNames[date.getMonth()];
+    const year = date.getFullYear().toString().slice(-2);
+    let hours = date.getHours();
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12 || 12;
+    const formattedTime = `${day} ${month}, ${year} | ${String(hours).padStart(2, '0')}:${minutes} ${ampm}`;
+    document.getElementById("time").textContent = formattedTime;
   }
+
+  function displayValidationTime(validatedAt) {
+    const validatedDate = new Date(validatedAt);
+    const day = validatedDate.getDate().toString().padStart(2, '0');
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const month = monthNames[validatedDate.getMonth()];
+    const year = validatedDate.getFullYear().toString().slice(-2);
+    let hours = validatedDate.getHours();
+    const minutes = validatedDate.getMinutes().toString().padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12 || 12;
+    const formattedTime = `${day} ${month}, ${year} | ${String(hours).padStart(2, '0')}:${minutes} ${ampm}`;
+    document.getElementById("validated-time").textContent = formattedTime;
+    document.getElementById("validated-at").classList.add("show");
+  }
+
+  function validateTicket() {
+    // Only validate if not already validated
+    if (ticket && !ticket.validated) {
+      // Apply validated state
+      applyValidatedState();
+      
+      // Update ticket in localStorage
+      ticket.validated = true;
+      ticket.validatedAt = new Date().toISOString();
+      
+      // Update tickets array
+      const ticketIndex = tickets.findIndex(t => t.id == id);
+      if (ticketIndex !== -1) {
+        tickets[ticketIndex] = ticket;
+        localStorage.setItem("tickets", JSON.stringify(tickets));
+      }
+      
+      // Display validation time
+      displayValidationTime(ticket.validatedAt);
+    }
+  }
+
+  function applyValidatedState() {
+    // Apply red theme to body background only
+    document.getElementById("busColor").classList.add("validated");
+    
+    // Update button
+    document.getElementById("qrBtn").classList.add("validated");
+    document.getElementById("qrBtn").innerHTML = '<img src="qr-code.png" alt="QR"> Show QR code';
+    
+    // Add enhanced shadow to ticket box
+    document.getElementById("ticket-box").classList.add("validated");
+    
+    // Show VALIDATED text in plate-number
+    document.getElementById("plate-number").textContent = "VALIDATED";
+  }
+
+  // Minimal magical swap function
+  function swapStops() {
+    const startElement = document.getElementById("start");
+    const endElement = document.getElementById("end");
+    
+    // Get original values
+    const startValue = startElement.textContent;
+    const endValue = endElement.textContent;
+    
+    // Get the magic elements
+    const startGlow = startElement.parentElement.querySelector('.magic-glow');
+    const endGlow = endElement.parentElement.querySelector('.swap-icon');
+    const startIcon = startElement.parentElement.querySelector('.swap-icon');
+    const endIcon = endElement.parentElement.querySelector('.swap-icon');
+    
+    // Create minimal magical effects
+    createMinimalMagic(startElement);
+    createMinimalMagic(endElement);
+    
+    // Add swapping animation class
+    startElement.classList.add("swapping");
+    endElement.classList.add("swapping");
+    
+    // Swap values after a short delay
+    setTimeout(() => {
+      startElement.textContent = endValue;
+      endElement.textContent = startValue;
+      
+      // Remove animation class after animation completes
+      setTimeout(() => {
+        startElement.classList.remove("swapping");
+        endElement.classList.remove("swapping");
+      }, 600);
+    }, 300);
+  }
+
+  // Create minimal magical effects
+  function createMinimalMagic(element) {
+    const rect = element.getBoundingClientRect();
+    const parentElement = element.parentElement;
+    
+    // Activate glow effect
+    const glow = parentElement.querySelector('.magic-glow');
+    glow.classList.add('active');
+    
+    // Activate swap icon
+    const icon = parentElement.querySelector('.swap-icon');
+    icon.classList.add('active');
+    
+    // Create 4 subtle sparkles
+    for (let i = 0; i < 4; i++) {
+      const sparkle = document.createElement("div");
+      sparkle.className = "magic-sparkle";
+      
+      // Position sparkles in a small circle around the element
+      const angle = (Math.PI * 2 * i) / 4;
+      const distance = 15;
+      const tx = Math.cos(angle) * distance;
+      const ty = Math.sin(angle) * distance;
+      const tx2 = Math.cos(angle) * distance * 1.5;
+      const ty2 = Math.sin(angle) * distance * 1.5;
+      
+      sparkle.style.setProperty("--tx", `${tx}px`);
+      sparkle.style.setProperty("--ty", `${ty}px`);
+      sparkle.style.setProperty("--tx2", `${tx2}px`);
+      sparkle.style.setProperty("--ty2", `${ty2}px`);
+      sparkle.style.left = `${rect.left + rect.width / 2}px`;
+      sparkle.style.top = `${rect.top + rect.height / 2}px`;
+      sparkle.classList.add('active');
+      
+      document.body.appendChild(sparkle);
+      
+      // Remove sparkle after animation
+      setTimeout(() => {
+        sparkle.remove();
+      }, 600);
+    }
+    
+    // Remove glow and icon after animation
+    setTimeout(() => {
+      glow.classList.remove('active');
+      icon.classList.remove('active');
+    }, 600);
+  }
+
+  // Date Time Picker Functions
+  function openDateTimePicker() {
+    const modal = document.getElementById('datetime-modal');
+    modal.classList.add('show');
+    
+    // Set current values
+    if (currentDateTime) {
+      const dateInput = document.getElementById('date-input');
+      const hourInput = document.getElementById('hour-input');
+      const minuteInput = document.getElementById('minute-input');
+      
+      // Format date for input (YYYY-MM-DD)
+      const year = currentDateTime.getFullYear();
+      const month = String(currentDateTime.getMonth() + 1).padStart(2, '0');
+      const day = String(currentDateTime.getDate()).padStart(2, '0');
+      dateInput.value = `${year}-${month}-${day}`;
+      
+      // Set time
+      let hours = currentDateTime.getHours();
+      const minutes = currentDateTime.getMinutes();
+      
+      // Determine period
+      if (hours >= 12) {
+        selectedPeriod = 'PM';
+        hours = hours === 12 ? 12 : hours - 12;
+      } else {
+        selectedPeriod = 'AM';
+        hours = hours === 0 ? 12 : hours;
+      }
+      
+      hourInput.value = hours;
+      minuteInput.value = String(minutes).padStart(2, '0');
+      
+      // Update period selector
+      updatePeriodSelector();
+    }
+  }
+
+  function closeDateTimePicker() {
+    const modal = document.getElementById('datetime-modal');
+    modal.classList.remove('show');
+  }
+
+  function selectPeriod(period) {
+    selectedPeriod = period;
+    updatePeriodSelector();
+  }
+
+  function updatePeriodSelector() {
+    const amOption = document.getElementById('am-option');
+    const pmOption = document.getElementById('pm-option');
+    
+    if (selectedPeriod === 'AM') {
+      amOption.classList.add('selected');
+      pmOption.classList.remove('selected');
+    } else {
+      amOption.classList.remove('selected');
+      pmOption.classList.add('selected');
+    }
+  }
+
+  function saveDateTime() {
+    const dateInput = document.getElementById('date-input').value;
+    const hourInput = document.getElementById('hour-input').value;
+    const minuteInput = document.getElementById('minute-input').value;
+    
+    if (!dateInput || !hourInput || !minuteInput) {
+      alert('Please fill in all fields');
+      return;
+    }
+    
+    const hours = parseInt(hourInput);
+    const minutes = parseInt(minuteInput);
+    
+    if (hours < 1 || hours > 12) {
+      alert('Please enter a valid hour (1-12)');
+      return;
+    }
+    
+    if (minutes < 0 || minutes > 59) {
+      alert('Please enter valid minutes (0-59)');
+      return;
+    }
+    
+    // Create new date object
+    const newDate = new Date(dateInput);
+    
+    // Convert to 24-hour format
+    let hours24 = hours;
+    if (selectedPeriod === 'PM' && hours !== 12) {
+      hours24 += 12;
+    } else if (selectedPeriod === 'AM' && hours === 12) {
+      hours24 = 0;
+    }
+    
+    newDate.setHours(hours24, minutes, 0, 0);
+    
+    // Update current date time
+    currentDateTime = newDate;
+    
+    // Update display
+    updateBookingTimeDisplay(currentDateTime);
+    
+    // Update ticket in localStorage
+    if (ticket) {
+      ticket.time = newDate.toISOString();
+      
+      // Update tickets array
+      const ticketIndex = tickets.findIndex(t => t.id == id);
+      if (ticketIndex !== -1) {
+        tickets[ticketIndex] = ticket;
+        localStorage.setItem("tickets", JSON.stringify(tickets));
+      }
+    }
+    
+    // Close modal
+    closeDateTimePicker();
+  }
+
+  // Route editing functionality
+  function setupRouteEditing() {
+    const routeElement = document.getElementById('route');
+    
+    routeElement.addEventListener('dblclick', function() {
+      // Make content editable
+      this.contentEditable = true;
+      this.classList.add('editing');
+      
+      // Focus on the element
+      this.focus();
+      
+      // Select all text
+      const range = document.createRange();
+      range.selectNodeContents(this);
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+    });
+    
+    routeElement.addEventListener('blur', function() {
+      // Make content non-editable
+      this.contentEditable = false;
+      this.classList.remove('editing');
+      
+      // Update ticket in localStorage
+      if (ticket) {
+        ticket.routeName = this.textContent;
+        
+        // Update tickets array
+        const ticketIndex = tickets.findIndex(t => t.id == id);
+        if (ticketIndex !== -1) {
+          tickets[ticketIndex] = ticket;
+          localStorage.setItem("tickets", JSON.stringify(tickets));
+        }
+      }
+    });
+    
+    // Save on Enter key
+    routeElement.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        this.blur();
+      }
+    });
+  }
+
+  // Fare selector functionality
+  function setupFareSelector() {
+    const fareElement = document.getElementById('calculated-fare');
+    const farePopup = document.getElementById('fare-popup');
+    
+    fareElement.addEventListener('dblclick', function(e) {
+      e.stopPropagation();
+      
+      // Position the popup above the element
+      const rect = this.getBoundingClientRect();
+      farePopup.style.bottom = (window.innerHeight - rect.top + 5) + 'px';
+      farePopup.style.left = rect.left + 'px';
+      
+      // Show the popup
+      farePopup.classList.add('show');
+      
+      // Highlight current fare
+      const currentFare = parseFloat(document.getElementById('fare').textContent);
+      const options = farePopup.querySelectorAll('.fare-option');
+      options.forEach(option => {
+        const fare = parseFloat(option.dataset.fare);
+        if (fare === currentFare) {
+          option.classList.add('selected');
+        } else {
+          option.classList.remove('selected');
+        }
+      });
+    });
+    
+    // Handle fare selection
+    const fareOptions = farePopup.querySelectorAll('.fare-option');
+    fareOptions.forEach(option => {
+      option.addEventListener('click', function() {
+        const fare = parseFloat(this.dataset.fare);
+        const discount = parseFloat(this.dataset.discount);
+        
+        // Update fare displays
+        document.getElementById('fare').textContent = fare.toFixed(1);
+        document.getElementById('calculated-fare').textContent = `₹${discount.toFixed(1)}`;
+        
+        // Update ticket in localStorage
+        if (ticket) {
+          ticket.price = fare;
+          ticket.fare = discount;
+          
+          // Update tickets array
+          const ticketIndex = tickets.findIndex(t => t.id == id);
+          if (ticketIndex !== -1) {
+            tickets[ticketIndex] = ticket;
+            localStorage.setItem("tickets", JSON.stringify(tickets));
+          }
+        }
+        
+        // Hide the popup
+        farePopup.classList.remove('show');
+      });
+    });
+    
+    // Close popup when clicking outside
+    document.addEventListener('click', function(e) {
+      if (!fareElement.contains(e.target) && !farePopup.contains(e.target)) {
+        farePopup.classList.remove('show');
+      }
+    });
+  }
+
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js')
       .then(reg => console.log("SW registered"))
       .catch(err => console.error("SW failed", err));
   }
+
+  // Initialize editing functionality when DOM is loaded
+  document.addEventListener('DOMContentLoaded', function() {
+    setupRouteEditing();
+    setupFareSelector();
+  });
 </script>
 
 </body>

@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ExeTickets - Payment Gateway</title>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#c7342a" />
+  <link rel="icon" type="image/png" href="icon-192.png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #c7342a;
+      --secondary: #63d0e8;
+      --background: #f0f4f8;
+      --card-bg: white;
+      --text: #333;
+      --border: #ccc;
+      --shadow: rgba(0,0,0,0.1);
+      --glass-bg: rgba(255,255,255,0.2);
+      --accent: #007bff;
+      --success: #4CAF50;
+      --error: #ff4d4d;
+    }
+
+    [data-theme="dark"] {
+      --primary: #e74c3c;
+      --secondary: #3498db;
+      --background: #121212;
+      --card-bg: #1e1e1e;
+      --text: #f0f0f0;
+      --border: #444;
+      --shadow: rgba(0,0,0,0.3);
+      --glass-bg: rgba(255,255,255,0.1);
+      --accent: #4CAF50;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--background);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      transition: all 0.3s ease;
+    }
+
+    .header {
+      background: var(--primary);
+      color: white;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 2px 10px var(--shadow);
+    }
+
+    .header h1 {
+      font-size: 24px;
+      font-weight: 600;
+    }
+
+    .header p {
+      margin-top: 5px;
+      opacity: 0.9;
+    }
+
+    .payment-container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .payment-card {
+      background: var(--card-bg);
+      border-radius: 20px;
+      box-shadow: 0 10px 30px var(--shadow);
+      width: 100%;
+      max-width: 500px;
+      padding: 30px;
+      animation: slideUp 0.5s ease-out;
+    }
+
+    .payment-header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .payment-icon {
+      font-size: 48px;
+      color: var(--primary);
+      margin-bottom: 15px;
+    }
+
+    .payment-title {
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 10px;
+    }
+
+    .payment-subtitle {
+      color: var(--text);
+      opacity: 0.8;
+    }
+
+    .ticket-details {
+      background: var(--glass-bg);
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 25px;
+    }
+
+    .ticket-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      font-size: 16px;
+    }
+
+    .ticket-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .ticket-label {
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .ticket-value {
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    .price-breakdown {
+      border-top: 1px solid var(--border);
+      padding-top: 15px;
+      margin-top: 15px;
+    }
+
+    .price-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 16px;
+    }
+
+    .price-row.discount {
+      color: var(--success);
+    }
+
+    .price-row.total {
+      font-weight: 600;
+      font-size: 18px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+    }
+
+    .payment-methods {
+      margin-bottom: 25px;
+    }
+
+    .method-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 15px;
+      color: var(--text);
+    }
+
+    .payment-method {
+      display: flex;
+      align-items: center;
+      padding: 15px;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .payment-method:hover {
+      border-color: var(--primary);
+      background: var(--glass-bg);
+    }
+
+    .payment-method.selected {
+      border-color: var(--primary);
+      background: rgba(199, 52, 42, 0.1);
+    }
+
+    .method-icon {
+      font-size: 24px;
+      margin-right: 15px;
+      color: var(--primary);
+    }
+
+    .method-info {
+      flex: 1;
+    }
+
+    .method-name {
+      font-weight: 500;
+      margin-bottom: 3px;
+    }
+
+    .method-desc {
+      font-size: 12px;
+      opacity: 0.7;
+    }
+
+    .method-radio {
+      width: 20px;
+      height: 20px;
+      accent-color: var(--primary);
+    }
+
+    .payment-button {
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: 12px;
+      background: var(--primary);
+      color: white;
+      font-weight: 600;
+      font-size: 18px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .payment-button:hover {
+      background: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .payment-button:disabled {
+      background: var(--border);
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .processing-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .processing-overlay.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .processing-content {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 30px;
+      text-align: center;
+      box-shadow: 0 10px 30px var(--shadow);
+      transform: scale(0.8);
+      transition: all 0.3s ease;
+    }
+
+    .processing-overlay.show .processing-content {
+      transform: scale(1);
+    }
+
+    .spinner {
+      width: 60px;
+      height: 60px;
+      border: 4px solid var(--border);
+      border-top: 4px solid var(--primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .processing-text {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 10px;
+    }
+
+    .processing-subtext {
+      font-size: 14px;
+      color: var(--text);
+      opacity: 0.7;
+    }
+
+    .cancel-button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: transparent;
+      color: var(--text);
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .cancel-button:hover {
+      background: var(--glass-bg);
+    }
+
+    @keyframes slideUp {
+      0% { transform: translateY(30px); opacity: 0; }
+      100% { transform: translateY(0); opacity: 1; }
+    }
+
+    @media (max-width: 768px) {
+      .payment-card {
+        padding: 20px;
+      }
+      
+      .payment-title {
+        font-size: 20px;
+      }
+      
+      .ticket-row, .price-row {
+        font-size: 14px;
+      }
+      
+      .price-row.total {
+        font-size: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1><i class="fas fa-lock"></i> Secure Payment Gateway</h1>
+    <p>Your payment information is encrypted and secure</p>
+  </div>
+
+  <div class="payment-container">
+    <div class="payment-card">
+      <div class="payment-header">
+        <i class="fas fa-ticket-alt payment-icon"></i>
+        <h2 class="payment-title">Complete Your Purchase</h2>
+        <p class="payment-subtitle">Review your ticket details and proceed to payment</p>
+      </div>
+
+      <div class="ticket-details">
+        <div class="ticket-row">
+          <span class="ticket-label">Route:</span>
+          <span class="ticket-value" id="route-name">-</span>
+        </div>
+        <div class="ticket-row">
+          <span class="ticket-label">From:</span>
+          <span class="ticket-value" id="start-point">-</span>
+        </div>
+        <div class="ticket-row">
+          <span class="ticket-label">To:</span>
+          <span class="ticket-value" id="end-point">-</span>
+        </div>
+        <div class="ticket-row">
+          <span class="ticket-label">Ticket ID:</span>
+          <span class="ticket-value" id="ticket-id">-</span>
+        </div>
+        
+        <div class="price-breakdown">
+          <div class="price-row">
+            <span>Original Price:</span>
+            <span id="original-price">₹0.00</span>
+          </div>
+          <div class="price-row discount">
+            <span>10% Discount:</span>
+            <span id="discount-amount">-₹0.00</span>
+          </div>
+          <div class="price-row total">
+            <span>Total Amount:</span>
+            <span id="total-amount">₹0.00</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="payment-methods">
+        <h3 class="method-title">Select Payment Method</h3>
+        
+        <div class="payment-method selected" onclick="selectPaymentMethod(this, 'wallet')">
+          <i class="fas fa-wallet method-icon"></i>
+          <div class="method-info">
+            <div class="method-name">ExeTickets Wallet</div>
+            <div class="method-desc">Pay using your wallet balance</div>
+          </div>
+          <input type="radio" name="payment-method" value="wallet" class="method-radio" checked>
+        </div>
+        
+        <div class="payment-method" onclick="selectPaymentMethod(this, 'upi')">
+          <i class="fas fa-mobile-alt method-icon"></i>
+          <div class="method-info">
+            <div class="method-name">UPI</div>
+            <div class="method-desc">Pay using UPI apps</div>
+          </div>
+          <input type="radio" name="payment-method" value="upi" class="method-radio">
+        </div>
+        
+        <div class="payment-method" onclick="selectPaymentMethod(this, 'card')">
+          <i class="fas fa-credit-card method-icon"></i>
+          <div class="method-info">
+            <div class="method-name">Credit/Debit Card</div>
+            <div class="method-desc">Pay using your card</div>
+          </div>
+          <input type="radio" name="payment-method" value="card" class="method-radio">
+        </div>
+        
+        <div class="payment-method" onclick="selectPaymentMethod(this, 'netbanking')">
+          <i class="fas fa-university method-icon"></i>
+          <div class="method-info">
+            <div class="method-name">Net Banking</div>
+            <div class="method-desc">Pay using internet banking</div>
+          </div>
+          <input type="radio" name="payment-method" value="netbanking" class="method-radio">
+        </div>
+      </div>
+
+      <button class="payment-button" id="pay-button" onclick="processPayment()">
+        <i class="fas fa-lock"></i>
+        Pay Securely
+      </button>
+
+      <button class="cancel-button" onclick="cancelPayment()">
+        Cancel Payment
+      </button>
+    </div>
+  </div>
+
+  <div class="processing-overlay" id="processing-overlay">
+    <div class="processing-content">
+      <div class="spinner"></div>
+      <div class="processing-text">Processing Payment...</div>
+      <div class="processing-subtext">Please wait while we secure your transaction</div>
+      <button class="cancel-button" onclick="cancelProcessing()">Cancel</button>
+    </div>
+  </div>
+
+  <script>
+    let selectedPaymentMethod = 'wallet';
+    let ticketData = null;
+    let processingTimeout = null;
+
+    // Initialize page
+    function initPage() {
+      // Get ticket data from sessionStorage
+      const pendingTicket = sessionStorage.getItem('pendingTicket');
+      if (!pendingTicket) {
+        alert('No ticket data found. Redirecting to home...');
+        window.location.href = 'index.html';
+        return;
+      }
+
+      ticketData = JSON.parse(pendingTicket);
+      
+      // Populate ticket details
+      document.getElementById('route-name').textContent = ticketData.routeName;
+      document.getElementById('start-point').textContent = ticketData.start;
+      document.getElementById('end-point').textContent = ticketData.end;
+      document.getElementById('ticket-id').textContent = ticketData.ticketID;
+      document.getElementById('original-price').textContent = `₹${ticketData.originalPrice.toFixed(2)}`;
+      document.getElementById('discount-amount').textContent = `-₹${ticketData.discountAmount.toFixed(2)}`;
+      document.getElementById('total-amount').textContent = `₹${ticketData.finalPrice.toFixed(2)}`;
+      
+      // Check wallet balance if wallet is selected
+      checkWalletBalance();
+    }
+
+    // Select payment method
+    function selectPaymentMethod(element, method) {
+      // Remove selected class from all methods
+      document.querySelectorAll('.payment-method').forEach(el => {
+        el.classList.remove('selected');
+      });
+      
+      // Add selected class to clicked method
+      element.classList.add('selected');
+      
+      // Update radio button
+      element.querySelector('.method-radio').checked = true;
+      
+      // Update selected method
+      selectedPaymentMethod = method;
+      
+      // Check wallet balance if wallet is selected
+      if (method === 'wallet') {
+        checkWalletBalance();
+      } else {
+        document.getElementById('pay-button').disabled = false;
+      }
+    }
+
+    // Check wallet balance
+    function checkWalletBalance() {
+      const balance = parseFloat(localStorage.getItem('walletBalance') || '0');
+      const payButton = document.getElementById('pay-button');
+      
+      if (balance < ticketData.finalPrice) {
+        payButton.disabled = true;
+        payButton.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Insufficient Balance`;
+      } else {
+        payButton.disabled = false;
+        payButton.innerHTML = `<i class="fas fa-lock"></i> Pay Securely`;
+      }
+    }
+
+    // Process payment
+    function processPayment() {
+      // Show processing overlay
+      const overlay = document.getElementById('processing-overlay');
+      overlay.classList.add('show');
+      
+      // Simulate payment processing
+      let processingStep = 0;
+      const processingText = document.querySelector('.processing-text');
+      const processingSubtext = document.querySelector('.processing-subtext');
+      
+      const steps = [
+        { text: 'Initializing Payment...', subtext: 'Connecting to secure server' },
+        { text: 'Verifying Details...', subtext: 'Validating ticket information' },
+        { text: 'Processing Payment...', subtext: 'Securing your transaction' },
+        { text: 'Completing Purchase...', subtext: 'Almost done!' }
+      ];
+      
+      const updateProcessing = () => {
+        if (processingStep < steps.length) {
+          processingText.textContent = steps[processingStep].text;
+          processingSubtext.textContent = steps[processingStep].subtext;
+          processingStep++;
+          processingTimeout = setTimeout(updateProcessing, 1500);
+        } else {
+          // Payment successful
+          completePayment();
+        }
+      };
+      
+      updateProcessing();
+    }
+
+    // Complete payment
+    function completePayment() {
+      // Clear processing timeout
+      if (processingTimeout) {
+        clearTimeout(processingTimeout);
+      }
+      
+      // Process based on payment method
+      if (selectedPaymentMethod === 'wallet') {
+        // Deduct from wallet
+        const currentBalance = parseFloat(localStorage.getItem('walletBalance') || '0');
+        const newBalance = currentBalance - ticketData.finalPrice;
+        localStorage.setItem('walletBalance', newBalance.toString());
+        
+        // Add transaction record
+        addTransaction('deduct', ticketData.finalPrice, `Ticket: ${ticketData.routeName}`);
+      }
+      
+      // Create ticket
+      const ticket = {
+        id: ticketData.ticketID,
+        routeName: ticketData.routeName,
+        route: `${ticketData.start} → ${ticketData.end}`,
+        time: new Date().toISOString(),
+        price: ticketData.originalPrice,
+        fare: ticketData.finalPrice.toFixed(1),
+        ticketID: ticketData.ticketID,
+        status: 'VALID',
+        owner: ticketData.owner,
+        validated: false
+      };
+      
+      if (ticketData.isForFriend) {
+        ticket.bookedBy = ticketData.bookedBy;
+        ticket.pending = true;
+      }
+      
+      // Save ticket
+      const all = JSON.parse(localStorage.getItem("tickets") || "[]");
+      all.push(ticket);
+      localStorage.setItem("tickets", JSON.stringify(all));
+      
+      // Clear pending ticket
+      sessionStorage.removeItem('pendingTicket');
+      
+      // Show success message
+      const processingText = document.querySelector('.processing-text');
+      const processingSubtext = document.querySelector('.processing-subtext');
+      const spinner = document.querySelector('.spinner');
+      
+      spinner.style.display = 'none';
+      processingText.textContent = 'Payment Successful!';
+      processingText.style.color = 'var(--success)';
+      processingSubtext.textContent = 'Redirecting to your ticket...';
+      
+      // Redirect to ticket page after delay
+      setTimeout(() => {
+        window.location.href = `ticket.html?id=${ticketData.ticketID}`;
+      }, 2000);
+    }
+
+    // Cancel payment
+    function cancelPayment() {
+      if (confirm('Are you sure you want to cancel this payment?')) {
+        sessionStorage.removeItem('pendingTicket');
+        window.location.href = 'index.html';
+      }
+    }
+
+    // Cancel processing
+    function cancelProcessing() {
+      if (confirm('Are you sure you want to cancel the payment?')) {
+        // Clear processing timeout
+        if (processingTimeout) {
+          clearTimeout(processingTimeout);
+        }
+        
+        // Hide overlay
+        document.getElementById('processing-overlay').classList.remove('show');
+      }
+    }
+
+    // Add transaction record
+    function addTransaction(type, amount, description) {
+      const transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+      
+      transactions.unshift({
+        type: type,
+        amount: amount,
+        description: description,
+        date: new Date().toISOString()
+      });
+      
+      // Keep only the most recent 20 transactions
+      if (transactions.length > 20) {
+        transactions.splice(20);
+      }
+      
+      localStorage.setItem('transactions', JSON.stringify(transactions));
+    }
+
+    // Initialize page when DOM is loaded
+    document.addEventListener('DOMContentLoaded', initPage);
+  </script>
+</body>
+</html>

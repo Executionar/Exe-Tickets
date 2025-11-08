@@ -1,0 +1,1305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ExeTickets - Profile</title>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#c7342a" />
+  <link rel="icon" type="image/png" href="icon-192.png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #c7342a;
+      --secondary: #63d0e8;
+      --background: #f0f4f8;
+      --card-bg: white;
+      --text: #333;
+      --border: #ccc;
+      --shadow: rgba(0,0,0,0.1);
+      --glass-bg: rgba(255,255,255,0.2);
+      --accent: #007bff;
+    }
+
+    [data-theme="dark"] {
+      --primary: #e74c3c;
+      --secondary: #3498db;
+      --background: #121212;
+      --card-bg: #1e1e1e;
+      --text: #f0f0f0;
+      --border: #444;
+      --shadow: rgba(0,0,0,0.3);
+      --glass-bg: rgba(255,255,255,0.1);
+      --accent: #4CAF50;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--background);
+      color: var(--text);
+      padding: 20px;
+      padding-bottom: 80px;
+      min-height: 100vh;
+      transition: all 0.3s ease;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .header h1 {
+      color: var(--primary);
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+
+    .profile-card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 30px;
+      box-shadow: 0 10px 25px var(--shadow);
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .avatar {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      font-size: 40px;
+      color: white;
+    }
+
+    .username {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    .secret-key {
+      background: var(--glass-bg);
+      padding: 15px;
+      border-radius: 8px;
+      margin: 20px 0;
+      font-family: monospace;
+      font-size: 14px;
+      word-break: break-all;
+      position: relative;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 5px 10px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.3s ease;
+    }
+
+    .copy-btn:hover {
+      transform: scale(1.05);
+    }
+
+    .section {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 15px var(--shadow);
+    }
+
+    .section h2 {
+      color: var(--primary);
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .input-group {
+      margin-bottom: 15px;
+    }
+
+    .input-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 500;
+    }
+
+    .input-group input, .input-group select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--card-bg);
+      color: var(--text);
+      font-size: 14px;
+    }
+
+    .btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 24px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      width: 100%;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px var(--shadow);
+    }
+
+    .btn-secondary {
+      background: var(--glass-bg);
+      color: var(--text);
+    }
+
+    .friend-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .friend-item {
+      background: var(--glass-bg);
+      padding: 15px;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .friend-info {
+      flex: 1;
+    }
+
+    .friend-name {
+      font-weight: 500;
+      margin-bottom: 5px;
+    }
+
+    .friend-key {
+      font-size: 12px;
+      color: #666;
+      font-family: monospace;
+    }
+
+    .remove-btn {
+      background: #ff4d4d;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 5px 10px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .achievements-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 15px;
+    }
+
+    .achievement {
+      background: var(--glass-bg);
+      padding: 20px;
+      border-radius: 12px;
+      text-align: center;
+      transition: all 0.3s ease;
+      border: 2px solid transparent;
+    }
+
+    .achievement.unlocked {
+      border-color: var(--primary);
+      background: var(--primary);
+      color: white;
+    }
+
+    .achievement-icon {
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+
+    .achievement-name {
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .theme-options {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .theme-option {
+      padding: 15px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .theme-option.active {
+      border-color: var(--primary);
+      background: var(--primary);
+      color: white;
+    }
+
+    .color-picker {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    .color-option {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 3px solid transparent;
+      transition: all 0.3s ease;
+    }
+
+    .color-option.active {
+      border-color: var(--text);
+      transform: scale(1.1);
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .stat-card {
+      background: var(--glass-bg);
+      padding: 20px;
+      border-radius: 12px;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: #666;
+      margin-top: 5px;
+    }
+
+    .export-options-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .export-options-modal.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .export-options-content {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 25px;
+      width: 90%;
+      max-width: 500px;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 10px 30px var(--shadow);
+      transform: scale(0.9);
+      transition: all 0.3s ease;
+    }
+
+    .export-options-modal.show .export-options-content {
+      transform: scale(1);
+    }
+
+    .export-options-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .export-options-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    .close-modal {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: var(--text);
+      transition: all 0.3s ease;
+    }
+
+    .close-modal:hover {
+      color: var(--primary);
+      transform: rotate(90deg);
+    }
+
+    .export-option {
+      display: flex;
+      align-items: center;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      background: var(--glass-bg);
+      transition: all 0.3s ease;
+    }
+
+    .export-option:hover {
+      background: var(--primary);
+      color: white;
+    }
+
+    .export-option-checkbox {
+      margin-right: 15px;
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+    }
+
+    .export-option-info {
+      flex: 1;
+    }
+
+    .export-option-name {
+      font-weight: 500;
+      margin-bottom: 3px;
+    }
+
+    .export-option-desc {
+      font-size: 12px;
+      opacity: 0.8;
+    }
+
+    .export-option-count {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--primary);
+      background: var(--card-bg);
+      padding: 4px 8px;
+      border-radius: 12px;
+    }
+
+    .export-option:hover .export-option-count {
+      background: rgba(255,255,255,0.2);
+      color: white;
+    }
+
+    .export-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .export-btn {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .export-btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .export-btn-secondary {
+      background: var(--glass-bg);
+      color: var(--text);
+    }
+
+    .export-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px var(--shadow);
+    }
+
+    /* Bottom Navigation Styles */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--card-bg);
+      box-shadow: 0 -2px 10px var(--shadow);
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0;
+      z-index: 1000;
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      color: var(--text);
+      text-decoration: none;
+      padding: 5px 10px;
+      border-radius: 8px;
+      position: relative;
+    }
+
+    .nav-item:hover {
+      background: var(--glass-bg);
+      transform: translateY(-2px);
+    }
+
+    .nav-item.active {
+      color: var(--primary);
+    }
+
+    .nav-item i {
+      font-size: 20px;
+      margin-bottom: 2px;
+    }
+
+    .nav-item span {
+      font-size: 12px;
+    }
+
+    .notification-badge {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background: #ff4d4d;
+      color: white;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: bold;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 10px;
+        padding-bottom: 80px;
+      }
+      
+      .theme-options {
+        grid-template-columns: 1fr;
+      }
+      
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1><i class="fas fa-user-circle"></i> Profile</h1>
+    </div>
+
+    <div class="profile-card">
+      <div class="avatar">
+        <i class="fas fa-user"></i>
+      </div>
+      <div class="username" id="username">User</div>
+      <div class="secret-key" id="secret-key">
+        EXE-ABC123DEF
+        <button class="copy-btn" onclick="copySecretKey()">
+          <i class="fas fa-copy"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2><i class="fas fa-chart-bar"></i> Statistics</h2>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value" id="stats-tickets">0</div>
+          <div class="stat-label">Tickets Booked</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="stats-friends">0</div>
+          <div class="stat-label">Friends</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="stats-saved">₹0</div>
+          <div class="stat-label">Amount Saved</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="stats-achievements">0</div>
+          <div class="stat-label">Achievements</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2><i class="fas fa-user-edit"></i> Account Settings</h2>
+      <div class="input-group">
+        <label>Username</label>
+        <input type="text" id="username-input" placeholder="Enter your username">
+      </div>
+      <button class="btn" onclick="updateUsername()">Update Username</button>
+    </div>
+
+    <div class="section">
+      <h2><i class="fas fa-users"></i> Friends</h2>
+      <div class="input-group">
+        <label>Add Friend (Secret Key)</label>
+        <input type="text" id="friend-key-input" placeholder="Enter friend's secret key">
+      </div>
+      <button class="btn" onclick="addFriend()">Add Friend</button>
+      
+      <div class="friend-list" id="friend-list">
+        <div style="text-align: center; padding: 20px; color: #666;">
+          No friends added yet
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2><i class="fas fa-palette"></i> Theme Settings</h2>
+      <div class="input-group">
+        <label>Theme Mode</label>
+        <div class="theme-options">
+          <div class="theme-option active" onclick="setTheme('light')">
+            <i class="fas fa-sun"></i> Light
+          </div>
+          <div class="theme-option" onclick="setTheme('dark')">
+            <i class="fas fa-moon"></i> Dark
+          </div>
+        </div>
+      </div>
+      
+      <div class="input-group">
+        <label>Accent Color</label>
+        <div class="color-picker">
+          <div class="color-option active" style="background: #c7342a" onclick="setAccentColor('#c7342a')"></div>
+          <div class="color-option" style="background: #3498db" onclick="setAccentColor('#3498db')"></div>
+          <div class="color-option" style="background: #4CAF50" onclick="setAccentColor('#4CAF50')"></div>
+          <div class="color-option" style="background: #FF9800" onclick="setAccentColor('#FF9800')"></div>
+          <div class="color-option" style="background: #9C27B0" onclick="setAccentColor('#9C27B0')"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2><i class="fas fa-trophy"></i> Achievements</h2>
+      <div class="achievements-grid" id="achievements-grid">
+        <div class="achievement" id="achievement-first-ticket">
+          <div class="achievement-icon">🎫</div>
+          <div class="achievement-name">First Ticket</div>
+        </div>
+        <div class="achievement" id="achievement-five-tickets">
+          <div class="achievement-icon">🎟️</div>
+          <div class="achievement-name">Five Tickets</div>
+        </div>
+        <div class="achievement" id="achievement-ten-tickets">
+          <div class="achievement-icon">🎊</div>
+          <div class="achievement-name">Ten Tickets</div>
+        </div>
+        <div class="achievement" id="achievement-first-friend">
+          <div class="achievement-icon">👥</div>
+          <div class="achievement-name">First Friend</div>
+        </div>
+        <div class="achievement" id="achievement-big-saver">
+          <div class="achievement-icon">💰</div>
+          <div class="achievement-name">Big Saver</div>
+        </div>
+        <div class="achievement" id="achievement-super-user">
+          <div class="achievement-icon">⭐</div>
+          <div class="achievement-name">Super User</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2><i class="fas fa-cog"></i> Data Management</h2>
+      <button class="btn" onclick="showExportOptions()" style="margin-bottom: 10px;">
+        <i class="fas fa-download"></i> Export Data
+      </button>
+      <button class="btn btn-secondary" onclick="document.getElementById('import-file').click()">
+        <i class="fas fa-upload"></i> Import Data
+      </button>
+      <input type="file" id="import-file" style="display: none;" accept=".json" onchange="importData(event)">
+      
+      <button class="btn" onclick="clearData()" style="margin-top: 10px; background: #ff4d4d;">
+        <i class="fas fa-trash"></i> Clear All Data
+      </button>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <div class="bottom-nav">
+    <a href="index.html" class="nav-item">
+      <i class="fas fa-home"></i>
+      <span>Home</span>
+    </a>
+    <a href="ticket-history.html" class="nav-item">
+      <i class="fas fa-history"></i>
+      <span>History</span>
+      <span class="notification-badge" id="notification-badge" style="display: none;">0</span>
+    </a>
+    <a href="profile.html" class="nav-item active">
+      <i class="fas fa-user"></i>
+      <span>Profile</span>
+    </a>
+  </div>
+
+  <!-- Export Options Modal -->
+  <div class="export-options-modal" id="export-options-modal">
+    <div class="export-options-content">
+      <div class="export-options-header">
+        <h3 class="export-options-title">Select Data to Export</h3>
+        <button class="close-modal" onclick="closeExportOptions()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <div class="export-options-list" id="export-options-list">
+        <!-- Options will be populated by JavaScript -->
+      </div>
+      
+      <div class="export-actions">
+        <button class="export-btn export-btn-secondary" onclick="selectAllExportOptions()">
+          <i class="fas fa-check-square"></i> Select All
+        </button>
+        <button class="export-btn export-btn-secondary" onclick="deselectAllExportOptions()">
+          <i class="fas fa-square"></i> Deselect All
+        </button>
+        <button class="export-btn export-btn-primary" onclick="exportSelectedData()">
+          <i class="fas fa-download"></i> Export Selected
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Initialize profile
+    function initProfile() {
+      // Apply theme immediately
+      applyTheme();
+      loadUserData();
+      loadFriends();
+      loadAchievements();
+      updateStats();
+      updateNotificationBadge();
+    }
+
+    // Apply theme function
+    function applyTheme() {
+      const theme = localStorage.getItem('theme') || 'light';
+      document.documentElement.setAttribute('data-theme', theme);
+      
+      // Update theme options
+      document.querySelectorAll('.theme-option').forEach(option => {
+        option.classList.remove('active');
+        if (option.textContent.toLowerCase().includes(theme)) {
+          option.classList.add('active');
+        }
+      });
+      
+      // Apply accent color if saved
+      const accentColor = localStorage.getItem('accentColor');
+      if (accentColor) {
+        document.documentElement.style.setProperty('--primary', accentColor);
+        
+        // Update active color option
+        document.querySelectorAll('.color-option').forEach(option => {
+          option.classList.remove('active');
+          if (option.style.background === accentColor) {
+            option.classList.add('active');
+          }
+        });
+      }
+    }
+
+    // Load user data
+    function loadUserData() {
+      const username = localStorage.getItem('username') || 'User';
+      const secretKey = localStorage.getItem('secretKey') || 'EXE-ABC123DEF';
+      
+      document.getElementById('username').textContent = username;
+      document.getElementById('username-input').value = username;
+      document.getElementById('secret-key').innerHTML = `
+        ${secretKey}
+        <button class="copy-btn" onclick="copySecretKey()">
+          <i class="fas fa-copy"></i>
+        </button>
+      `;
+    }
+
+    // Update username
+    function updateUsername() {
+      const username = document.getElementById('username-input').value.trim();
+      if (username) {
+        localStorage.setItem('username', username);
+        document.getElementById('username').textContent = username;
+        showNotification('Username updated successfully!');
+      } else {
+        showNotification('Please enter a valid username', 'error');
+      }
+    }
+
+    // Copy secret key
+    function copySecretKey() {
+      const secretKey = localStorage.getItem('secretKey');
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(secretKey).then(() => {
+          showNotification('Secret key copied to clipboard!');
+        });
+      } else {
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = secretKey;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        showNotification('Secret key copied to clipboard!');
+      }
+    }
+
+    // Load friends
+    function loadFriends() {
+      const friends = JSON.parse(localStorage.getItem('friends') || '[]');
+      const friendList = document.getElementById('friend-list');
+      
+      if (friends.length === 0) {
+        friendList.innerHTML = `
+          <div style="text-align: center; padding: 20px; color: #666;">
+            No friends added yet
+          </div>
+        `;
+        return;
+      }
+      
+      friendList.innerHTML = friends.map(friend => `
+        <div class="friend-item">
+          <div class="friend-info">
+            <div class="friend-name">${friend.name || friend.key}</div>
+            <div class="friend-key">${friend.key}</div>
+          </div>
+          <button class="remove-btn" onclick="removeFriend('${friend.key}')">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      `).join('');
+    }
+
+    // Add friend
+    function addFriend() {
+      const friendKey = document.getElementById('friend-key-input').value.trim();
+      if (!friendKey) {
+        showNotification('Please enter a friend\'s secret key', 'error');
+        return;
+      }
+      
+      const myKey = localStorage.getItem('secretKey');
+      if (friendKey === myKey) {
+        showNotification('You cannot add yourself as a friend!', 'error');
+        return;
+      }
+      
+      let friends = JSON.parse(localStorage.getItem('friends') || '[]');
+      
+      if (friends.find(f => f.key === friendKey)) {
+        showNotification('This friend is already added!', 'error');
+        return;
+      }
+      
+      friends.push({
+        key: friendKey,
+        name: `Friend ${friends.length + 1}`,
+        addedAt: new Date().toISOString()
+      });
+      
+      localStorage.setItem('friends', JSON.stringify(friends));
+      document.getElementById('friend-key-input').value = '';
+      loadFriends();
+      updateStats();
+      
+      // Update achievements
+      updateAchievements('friend_added', friends.length);
+      
+      showNotification('Friend added successfully!');
+    }
+
+    // Remove friend
+    function removeFriend(friendKey) {
+      if (!confirm('Are you sure you want to remove this friend?')) return;
+      
+      let friends = JSON.parse(localStorage.getItem('friends') || '[]');
+      friends = friends.filter(f => f.key !== friendKey);
+      localStorage.setItem('friends', JSON.stringify(friends));
+      loadFriends();
+      updateStats();
+      showNotification('Friend removed successfully!');
+    }
+
+    // Load achievements
+    function loadAchievements() {
+      const achievements = JSON.parse(localStorage.getItem('achievements') || '{}');
+      
+      // Map achievement elements to their keys
+      const achievementMap = {
+        'achievement-first-ticket': 'first_ticket',
+        'achievement-five-tickets': 'five_tickets',
+        'achievement-ten-tickets': 'ten_tickets',
+        'achievement-first-friend': 'first_friend',
+        'achievement-big-saver': 'big_saver',
+        'achievement-super-user': 'super_user'
+      };
+      
+      // Update each achievement element
+      Object.keys(achievementMap).forEach(elementId => {
+        const achievementKey = achievementMap[elementId];
+        const element = document.getElementById(elementId);
+        if (element && achievements[achievementKey]) {
+          element.classList.add('unlocked');
+        }
+      });
+    }
+
+    // Update statistics
+    function updateStats() {
+      const tickets = JSON.parse(localStorage.getItem('tickets') || '[]');
+      const friends = JSON.parse(localStorage.getItem('friends') || '[]');
+      const achievements = JSON.parse(localStorage.getItem('achievements') || '{}');
+      
+      const myKey = localStorage.getItem('secretKey');
+      const myTickets = tickets.filter(t => t.owner === myKey);
+      const totalSpent = myTickets.reduce((sum, t) => sum + t.price, 0);
+      const totalFare = myTickets.reduce((sum, t) => sum + parseFloat(t.fare), 0);
+      const savedAmount = totalSpent - totalFare;
+      
+      document.getElementById('stats-tickets').textContent = myTickets.length;
+      document.getElementById('stats-friends').textContent = friends.length;
+      document.getElementById('stats-saved').textContent = `₹${savedAmount.toFixed(1)}`;
+      document.getElementById('stats-achievements').textContent = Object.keys(achievements).length;
+      
+      // Check for big saver achievement
+      if (savedAmount >= 100) {
+        updateAchievements('amount_saved', savedAmount);
+      }
+      
+      // Check for super user achievement
+      if (myTickets.length >= 20 && friends.length >= 5) {
+        updateAchievements('super_user', 1);
+      }
+    }
+
+    // Theme management
+    function setTheme(theme) {
+      localStorage.setItem('theme', theme);
+      applyTheme();
+    }
+
+    function setAccentColor(color) {
+      document.documentElement.style.setProperty('--primary', color);
+      localStorage.setItem('accentColor', color);
+      
+      // Update active color option
+      document.querySelectorAll('.color-option').forEach(option => {
+        option.classList.remove('active');
+        if (option.style.background === color) {
+          option.classList.add('active');
+        }
+      });
+    }
+
+    // Export Options Modal
+    function showExportOptions() {
+      const modal = document.getElementById('export-options-modal');
+      const optionsList = document.getElementById('export-options-list');
+      
+      // Get data counts
+      const tickets = JSON.parse(localStorage.getItem('tickets') || '[]');
+      const friends = JSON.parse(localStorage.getItem('friends') || '[]');
+      const savedCards = JSON.parse(localStorage.getItem('savedCards') || '[]');
+      const achievements = JSON.parse(localStorage.getItem('achievements') || '{}');
+      
+      // Populate export options
+      optionsList.innerHTML = `
+        <div class="export-option">
+          <input type="checkbox" class="export-option-checkbox" id="export-tickets" checked>
+          <div class="export-option-info">
+            <div class="export-option-name">Tickets</div>
+            <div class="export-option-desc">All your booked tickets</div>
+          </div>
+          <div class="export-option-count">${tickets.length}</div>
+        </div>
+        
+        <div class="export-option">
+          <input type="checkbox" class="export-option-checkbox" id="export-friends" checked>
+          <div class="export-option-info">
+            <div class="export-option-name">Friends</div>
+            <div class="export-option-desc">Your friends list</div>
+          </div>
+          <div class="export-option-count">${friends.length}</div>
+        </div>
+        
+        <div class="export-option">
+          <input type="checkbox" class="export-option-checkbox" id="export-saved-cards" checked>
+          <div class="export-option-info">
+            <div class="export-option-name">Saved Cards</div>
+            <div class="export-option-desc">Your saved route cards</div>
+          </div>
+          <div class="export-option-count">${savedCards.length}</div>
+        </div>
+        
+        <div class="export-option">
+          <input type="checkbox" class="export-option-checkbox" id="export-achievements" checked>
+          <div class="export-option-info">
+            <div class="export-option-name">Achievements</div>
+            <div class="export-option-desc">Your unlocked achievements</div>
+          </div>
+          <div class="export-option-count">${Object.keys(achievements).length}</div>
+        </div>
+        
+        <div class="export-option">
+          <input type="checkbox" class="export-option-checkbox" id="export-theme" checked>
+          <div class="export-option-info">
+            <div class="export-option-name">Theme Settings</div>
+            <div class="export-option-desc">Your theme and color preferences</div>
+          </div>
+          <div class="export-option-count">1</div>
+        </div>
+        
+        <div class="export-option">
+          <input type="checkbox" class="export-option-checkbox" id="export-profile" checked>
+          <div class="export-option-info">
+            <div class="export-option-name">Profile Information</div>
+            <div class="export-option-desc">Username and secret key</div>
+          </div>
+          <div class="export-option-count">1</div>
+        </div>
+      `;
+      
+      // Show modal
+      modal.classList.add('show');
+    }
+
+    function closeExportOptions() {
+      const modal = document.getElementById('export-options-modal');
+      modal.classList.remove('show');
+    }
+
+    function selectAllExportOptions() {
+      document.querySelectorAll('.export-option-checkbox').forEach(checkbox => {
+        checkbox.checked = true;
+      });
+    }
+
+    function deselectAllExportOptions() {
+      document.querySelectorAll('.export-option-checkbox').forEach(checkbox => {
+        checkbox.checked = false;
+      });
+    }
+
+    function exportSelectedData() {
+      const data = {};
+      
+      // Collect selected data
+      if (document.getElementById('export-tickets').checked) {
+        data.tickets = JSON.parse(localStorage.getItem('tickets') || '[]');
+      }
+      
+      if (document.getElementById('export-friends').checked) {
+        data.friends = JSON.parse(localStorage.getItem('friends') || '[]');
+      }
+      
+      if (document.getElementById('export-saved-cards').checked) {
+        data.savedCards = JSON.parse(localStorage.getItem('savedCards') || '[]');
+      }
+      
+      if (document.getElementById('export-achievements').checked) {
+        data.achievements = JSON.parse(localStorage.getItem('achievements') || '{}');
+      }
+      
+      if (document.getElementById('export-theme').checked) {
+        data.theme = localStorage.getItem('theme') || 'light';
+        data.accentColor = localStorage.getItem('accentColor');
+      }
+      
+      if (document.getElementById('export-profile').checked) {
+        data.secretKey = localStorage.getItem('secretKey');
+        data.username = localStorage.getItem('username');
+      }
+      
+      // Add metadata
+      data.exportDate = new Date().toISOString();
+      data.exportVersion = '1.0';
+      
+      // Create and download file
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `exetickets-profile-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      
+      // Close modal and show notification
+      closeExportOptions();
+      showNotification('Data exported successfully!');
+    }
+
+    // Export/Import data (legacy function for direct export)
+    function exportData() {
+      const data = {
+        tickets: JSON.parse(localStorage.getItem("tickets") || "[]"),
+        friends: JSON.parse(localStorage.getItem("friends") || "[]"),
+        savedCards: JSON.parse(localStorage.getItem("savedCards") || "[]"),
+        achievements: JSON.parse(localStorage.getItem("achievements") || "{}"),
+        theme: localStorage.getItem("theme") || "light",
+        secretKey: localStorage.getItem("secretKey"),
+        username: localStorage.getItem("username"),
+        accentColor: localStorage.getItem("accentColor")
+      };
+      
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'exetickets-profile-backup.json';
+      a.click();
+      URL.revokeObjectURL(url);
+      showNotification('Data exported successfully!');
+    }
+
+    function importData(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const data = JSON.parse(e.target.result);
+          
+          if (data.tickets) localStorage.setItem("tickets", JSON.stringify(data.tickets));
+          if (data.friends) localStorage.setItem("friends", JSON.stringify(data.friends));
+          if (data.savedCards) localStorage.setItem("savedCards", JSON.stringify(data.savedCards));
+          if (data.achievements) localStorage.setItem("achievements", JSON.stringify(data.achievements));
+          if (data.theme) localStorage.setItem("theme", data.theme);
+          if (data.secretKey) localStorage.setItem("secretKey", data.secretKey);
+          if (data.username) localStorage.setItem("username", data.username);
+          if (data.accentColor) localStorage.setItem("accentColor", data.accentColor);
+          
+          showNotification('Data imported successfully! Refreshing page...');
+          setTimeout(() => location.reload(), 1500);
+        } catch (error) {
+          showNotification('Error importing data. Please check the file format.', 'error');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    // Clear all data
+    function clearData() {
+      if (!confirm('Are you sure you want to clear all data? This action cannot be undone!')) return;
+      
+      if (!confirm('This will delete all your tickets, friends, and settings. Are you absolutely sure?')) return;
+      
+      localStorage.clear();
+      showNotification('All data cleared successfully! Refreshing page...');
+      setTimeout(() => location.reload(), 1500);
+    }
+
+    // Update achievements
+    function updateAchievements(type, value) {
+      let achievements = JSON.parse(localStorage.getItem("achievements") || "{}");
+      let updated = false;
+      
+      switch(type) {
+        case 'tickets_booked':
+          if (value >= 1 && !achievements.first_ticket) {
+            achievements.first_ticket = true;
+            updated = true;
+          }
+          if (value >= 5 && !achievements.five_tickets) {
+            achievements.five_tickets = true;
+            updated = true;
+          }
+          if (value >= 10 && !achievements.ten_tickets) {
+            achievements.ten_tickets = true;
+            updated = true;
+          }
+          break;
+        case 'friend_added':
+          if (value >= 1 && !achievements.first_friend) {
+            achievements.first_friend = true;
+            updated = true;
+          }
+          break;
+        case 'amount_saved':
+          if (value >= 100 && !achievements.big_saver) {
+            achievements.big_saver = true;
+            updated = true;
+          }
+          break;
+        case 'super_user':
+          if (value >= 1 && !achievements.super_user) {
+            achievements.super_user = true;
+            updated = true;
+          }
+          break;
+      }
+      
+      if (updated) {
+        localStorage.setItem("achievements", JSON.stringify(achievements));
+        loadAchievements();
+        updateStats();
+        
+        // Show achievement notification
+        const achievementNames = {
+          'first_ticket': 'First Ticket',
+          'five_tickets': 'Five Tickets',
+          'ten_tickets': 'Ten Tickets',
+          'first_friend': 'First Friend',
+          'big_saver': 'Big Saver',
+          'super_user': 'Super User'
+        };
+        
+        const achievementIcons = {
+          'first_ticket': '🎫',
+          'five_tickets': '🎟️',
+          'ten_tickets': '🎊',
+          'first_friend': '👥',
+          'big_saver': '💰',
+          'super_user': '⭐'
+        };
+        
+        for (let key in achievements) {
+          if (achievements[key] && type === key.replace('_', '_')) {
+            showAchievementNotification(
+              achievementNames[key], 
+              achievementIcons[key]
+            );
+          }
+        }
+      }
+    }
+
+    // Show notification
+    function showNotification(message, type = 'success') {
+      const notification = document.createElement('div');
+      notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${type === 'success' ? 'var(--primary)' : '#ff4d4d'};
+        color: white;
+        padding: 15px 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 20px var(--shadow);
+        z-index: 10000;
+        animation: slideInRight 0.5s ease-out;
+        max-width: 300px;
+      `;
+      notification.textContent = message;
+      document.body.appendChild(notification);
+      
+      setTimeout(() => notification.remove(), 3000);
+    }
+
+    // Show achievement notification
+    function showAchievementNotification(title, icon) {
+      const notification = document.createElement('div');
+      notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: var(--primary);
+        color: white;
+        padding: 15px 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 20px var(--shadow);
+        z-index: 10000;
+        animation: slideInRight 0.5s ease-out;
+      `;
+      notification.innerHTML = `
+        <div style="font-size: 24px; margin-bottom: 5px;">${icon}</div>
+        <div style="font-weight: bold;">Achievement Unlocked: ${title}</div>
+      `;
+      document.body.appendChild(notification);
+      
+      setTimeout(() => notification.remove(), 3000);
+    }
+
+    // Update notification badge
+    function updateNotificationBadge() {
+      const tickets = JSON.parse(localStorage.getItem("tickets") || "[]");
+      const myKey = localStorage.getItem('secretKey');
+      const pendingCount = tickets.filter(t => t.owner === myKey && t.pending).length;
+      
+      const badge = document.getElementById('notification-badge');
+      if (pendingCount > 0) {
+        badge.textContent = pendingCount;
+        badge.style.display = 'flex';
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+
+    // Add CSS animation for slideInRight
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes slideInRight {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+      }
+    `;
+    document.head.appendChild(style);
+
+    // Initialize profile when DOM is loaded
+    document.addEventListener('DOMContentLoaded', initProfile);
+  </script>
+</body>
+</html>

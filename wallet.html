@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ExeTickets - Wallet</title>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#c7342a" />
+  <link rel="icon" type="image/png" href="icon-192.png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #c7342a;
+      --secondary: #63d0e8;
+      --background: #f0f4f8;
+      --card-bg: white;
+      --text: #333;
+      --border: #ccc;
+      --shadow: rgba(0,0,0,0.1);
+      --glass-bg: rgba(255,255,255,0.2);
+      --accent: #007bff;
+      --wallet-low: #ff4d4d;
+      --wallet-medium: #ff9800;
+      --wallet-high: #4CAF50;
+    }
+
+    [data-theme="dark"] {
+      --primary: #e74c3c;
+      --secondary: #3498db;
+      --background: #121212;
+      --card-bg: #1e1e1e;
+      --text: #f0f0f0;
+      --border: #444;
+      --shadow: rgba(0,0,0,0.3);
+      --glass-bg: rgba(255,255,255,0.1);
+      --accent: #4CAF50;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--background);
+      color: var(--text);
+      overflow-x: hidden;
+      padding: 20px;
+      padding-bottom: 80px;
+      transition: all 0.3s ease;
+    }
+
+    .theme-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+      background: var(--glass-bg);
+      backdrop-filter: blur(10px);
+      border: none;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 20px;
+      color: var(--text);
+      transition: all 0.3s ease;
+    }
+
+    .theme-toggle:hover {
+      transform: scale(1.1);
+    }
+
+    .back-button {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      z-index: 1000;
+      background: var(--glass-bg);
+      backdrop-filter: blur(10px);
+      border: none;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 20px;
+      color: var(--text);
+      transition: all 0.3s ease;
+    }
+
+    .back-button:hover {
+      transform: scale(1.1);
+    }
+
+    h2 {
+      text-align: center;
+      margin: 80px 0 30px;
+      animation: fadeIn 1s ease-out;
+      color: var(--primary);
+    }
+
+    .wallet-card {
+      background: var(--card-bg);
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 10px 30px var(--shadow);
+      margin-bottom: 30px;
+      position: relative;
+      overflow: hidden;
+      animation: slideUp 0.8s ease-out;
+    }
+
+    .wallet-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .wallet-title {
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .wallet-icon {
+      font-size: 30px;
+      color: var(--primary);
+    }
+
+    .wallet-balance-container {
+      margin-bottom: 30px;
+    }
+
+    .wallet-balance-label {
+      font-size: 16px;
+      color: var(--text);
+      margin-bottom: 10px;
+      opacity: 0.8;
+    }
+
+    .wallet-balance {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 10px;
+    }
+
+    .wallet-border {
+      height: 6px;
+      background: var(--wallet-high);
+      border-radius: 3px;
+      transition: all 0.3s ease;
+    }
+
+    .wallet-border.low {
+      background: var(--wallet-low);
+    }
+
+    .wallet-border.medium {
+      background: var(--wallet-medium);
+    }
+
+    .wallet-border.high {
+      background: var(--wallet-high);
+    }
+
+    .add-money-section {
+      margin-top: 30px;
+    }
+
+    .section-title {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      color: var(--text);
+    }
+
+    .suggested-amounts {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .amount-box {
+      flex: 1;
+      min-width: 100px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(4px);
+      border-radius: 12px;
+      padding: 15px;
+      text-align: center;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      color: var(--text);
+      font-size: 18px;
+    }
+
+    .amount-box:hover, .amount-box.selected {
+      background: var(--primary);
+      color: white;
+      transform: scale(1.05);
+    }
+
+    .custom-amount-container {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .custom-amount-input {
+      flex: 1;
+      padding: 15px;
+      font-size: 18px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--card-bg);
+      color: var(--text);
+      transition: all 0.3s ease;
+    }
+
+    .custom-amount-input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 10px var(--accent);
+    }
+
+    .add-money-button {
+      padding: 15px 30px;
+      border: none;
+      border-radius: 12px;
+      background: var(--primary);
+      color: white;
+      font-weight: 600;
+      font-size: 18px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .add-money-button:hover {
+      background: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .add-money-button:disabled {
+      background: var(--border);
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .transaction-history {
+      margin-top: 30px;
+    }
+
+    .transaction-list {
+      background: var(--card-bg);
+      border-radius: 16px;
+      box-shadow: 0 10px 25px var(--shadow);
+      overflow: hidden;
+    }
+
+    .transaction-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 20px;
+      border-bottom: 1px solid var(--border);
+      transition: all 0.3s ease;
+    }
+
+    .transaction-item:last-child {
+      border-bottom: none;
+    }
+
+    .transaction-item:hover {
+      background: var(--glass-bg);
+    }
+
+    .transaction-details {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .transaction-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .transaction-icon.add {
+      background: rgba(76, 175, 80, 0.2);
+      color: var(--wallet-high);
+    }
+
+    .transaction-icon.deduct {
+      background: rgba(244, 67, 54, 0.2);
+      color: var(--wallet-low);
+    }
+
+    .transaction-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .transaction-title {
+      font-weight: 500;
+      margin-bottom: 3px;
+    }
+
+    .transaction-date {
+      font-size: 12px;
+      opacity: 0.7;
+    }
+
+    .transaction-amount {
+      font-weight: 600;
+      font-size: 18px;
+    }
+
+    .transaction-amount.add {
+      color: var(--wallet-high);
+    }
+
+    .transaction-amount.deduct {
+      color: var(--wallet-low);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text);
+      opacity: 0.7;
+    }
+
+    .empty-state i {
+      font-size: 48px;
+      margin-bottom: 15px;
+      color: var(--border);
+    }
+
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--card-bg);
+      box-shadow: 0 -2px 10px var(--shadow);
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0;
+      z-index: 1000;
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      color: var(--text);
+      text-decoration: none;
+      padding: 5px 10px;
+      border-radius: 8px;
+    }
+
+    .nav-item:hover {
+      background: var(--glass-bg);
+      transform: translateY(-2px);
+    }
+
+    .nav-item.active {
+      color: var(--primary);
+    }
+
+    .nav-item i {
+      font-size: 20px;
+      margin-bottom: 2px;
+    }
+
+    .nav-item span {
+      font-size: 12px;
+    }
+
+    .notification {
+      position: fixed;
+      top: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--primary);
+      color: white;
+      padding: 15px 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 20px var(--shadow);
+      z-index: 10000;
+      animation: slideDown 0.5s ease-out;
+      max-width: 300px;
+      text-align: center;
+    }
+
+    .notification.error {
+      background: var(--wallet-low);
+    }
+
+    .notification.success {
+      background: var(--wallet-high);
+    }
+
+    @keyframes slideUp {
+      0% { transform: translateY(30px); opacity: 0; }
+      100% { transform: translateY(0); opacity: 1; }
+    }
+
+    @keyframes fadeIn {
+      0% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+
+    @keyframes slideDown {
+      0% { transform: translate(-50%, -100%); opacity: 0; }
+      100% { transform: translate(-50%, 0); opacity: 1; }
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 10px;
+      }
+      
+      .wallet-card {
+        padding: 20px;
+      }
+      
+      .wallet-balance {
+        font-size: 28px;
+      }
+      
+      .suggested-amounts {
+        gap: 10px;
+      }
+      
+      .amount-box {
+        min-width: 80px;
+        padding: 12px;
+        font-size: 16px;
+      }
+      
+      .custom-amount-container {
+        flex-direction: column;
+      }
+      
+      .add-money-button {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <button class="back-button" onclick="goBack()">
+    <i class="fas fa-arrow-left"></i>
+  </button>
+
+  <button class="theme-toggle" onclick="toggleTheme()">
+    <i class="fas fa-moon" id="theme-icon"></i>
+  </button>
+
+  <h2>My Wallet</h2>
+
+  <div class="wallet-card">
+    <div class="wallet-header">
+      <div class="wallet-title">Wallet Balance</div>
+      <i class="fas fa-wallet wallet-icon"></i>
+    </div>
+    
+    <div class="wallet-balance-container">
+      <div class="wallet-balance-label">Available Balance</div>
+      <div class="wallet-balance" id="wallet-balance">₹0.00</div>
+      <div class="wallet-border" id="wallet-border"></div>
+    </div>
+  </div>
+
+  <div class="add-money-section">
+    <h3 class="section-title">Add Money</h3>
+    
+    <div class="suggested-amounts">
+      <div class="amount-box" onclick="selectAmount(this, 50)">₹50</div>
+      <div class="amount-box" onclick="selectAmount(this, 100)">₹100</div>
+      <div class="amount-box" onclick="selectAmount(this, 500)">₹500</div>
+      <div class="amount-box" onclick="selectAmount(this, 1000)">₹1000</div>
+    </div>
+    
+    <div class="custom-amount-container">
+      <input type="number" class="custom-amount-input" id="custom-amount" placeholder="Enter custom amount" min="1">
+      <button class="add-money-button" id="add-money-btn" onclick="addMoney()">
+        <i class="fas fa-plus-circle"></i>
+        Add Money
+      </button>
+    </div>
+  </div>
+
+  <div class="transaction-history">
+    <h3 class="section-title">Transaction History</h3>
+    
+    <div class="transaction-list" id="transaction-list">
+      <!-- Transactions will be populated by JavaScript -->
+    </div>
+  </div>
+
+  <div class="bottom-nav">
+    <a href="index.html" class="nav-item">
+      <i class="fas fa-home"></i>
+      <span>Home</span>
+    </a>
+    <a href="ticket-history.html" class="nav-item">
+      <i class="fas fa-history"></i>
+      <span>History</span>
+    </a>
+    <a href="profile.html" class="nav-item" target="_blank">
+      <i class="fas fa-user"></i>
+      <span>Profile</span>
+    </a>
+  </div>
+
+  <script>
+    let selectedAmount = 0;
+
+    // Initialize app
+    function initApp() {
+      loadTheme();
+      updateWalletDisplay();
+      loadTransactionHistory();
+    }
+
+    // Theme management
+    function loadTheme() {
+      const theme = localStorage.getItem('theme') || 'light';
+      document.documentElement.setAttribute('data-theme', theme);
+      updateThemeIcon(theme);
+    }
+
+    function toggleTheme() {
+      const currentTheme = document.documentElement.getAttribute('data-theme');
+      const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+      updateThemeIcon(newTheme);
+    }
+
+    function updateThemeIcon(theme) {
+      const icon = document.getElementById('theme-icon');
+      icon.className = theme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
+    }
+
+    // Update wallet display
+    function updateWalletDisplay() {
+      const balance = parseFloat(localStorage.getItem('walletBalance') || '0');
+      const balanceElement = document.getElementById('wallet-balance');
+      const borderElement = document.getElementById('wallet-border');
+      
+      balanceElement.textContent = `₹${balance.toFixed(2)}`;
+      
+      // Update border based on balance
+      borderElement.classList.remove('low', 'medium', 'high');
+      
+      if (balance < 50) {
+        borderElement.classList.add('low');
+        borderElement.style.width = '20%';
+      } else if (balance < 200) {
+        borderElement.classList.add('medium');
+        borderElement.style.width = '50%';
+      } else {
+        borderElement.classList.add('high');
+        borderElement.style.width = '100%';
+      }
+    }
+
+    // Select amount
+    function selectAmount(element, amount) {
+      // Remove selected class from all amount boxes
+      document.querySelectorAll('.amount-box').forEach(box => {
+        box.classList.remove('selected');
+      });
+      
+      // Add selected class to clicked element
+      element.classList.add('selected');
+      
+      // Set selected amount and update input
+      selectedAmount = amount;
+      document.getElementById('custom-amount').value = amount;
+    }
+
+    // Add money to wallet
+    function addMoney() {
+      const customAmount = parseFloat(document.getElementById('custom-amount').value);
+      
+      if (!customAmount || customAmount <= 0) {
+        showNotification('Please enter a valid amount', 'error');
+        return;
+      }
+      
+      // Get current balance
+      const currentBalance = parseFloat(localStorage.getItem('walletBalance') || '0');
+      
+      // Add money to balance
+      const newBalance = currentBalance + customAmount;
+      localStorage.setItem('walletBalance', newBalance.toString());
+      
+      // Add transaction record
+      addTransaction('add', customAmount, 'Money added to wallet');
+      
+      // Update display
+      updateWalletDisplay();
+      
+      // Show success notification
+      showNotification(`₹${customAmount.toFixed(2)} added to your wallet`, 'success');
+      
+      // Reset form
+      document.getElementById('custom-amount').value = '';
+      document.querySelectorAll('.amount-box').forEach(box => {
+        box.classList.remove('selected');
+      });
+      selectedAmount = 0;
+    }
+
+    // Add transaction record
+    function addTransaction(type, amount, description) {
+      const transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+      
+      transactions.unshift({
+        type: type,
+        amount: amount,
+        description: description,
+        date: new Date().toISOString()
+      });
+      
+      // Keep only the most recent 20 transactions
+      if (transactions.length > 20) {
+        transactions.splice(20);
+      }
+      
+      localStorage.setItem('transactions', JSON.stringify(transactions));
+      loadTransactionHistory();
+    }
+
+    // Load transaction history
+    function loadTransactionHistory() {
+      const transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+      const transactionList = document.getElementById('transaction-list');
+      
+      if (transactions.length === 0) {
+        transactionList.innerHTML = `
+          <div class="empty-state">
+            <i class="fas fa-receipt"></i>
+            <p>No transactions yet</p>
+          </div>
+        `;
+        return;
+      }
+      
+      transactionList.innerHTML = transactions.map(transaction => {
+        const date = new Date(transaction.date);
+        const formattedDate = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        
+        return `
+          <div class="transaction-item">
+            <div class="transaction-details">
+              <div class="transaction-icon ${transaction.type}">
+                <i class="fas fa-${transaction.type === 'add' ? 'plus' : 'minus'}"></i>
+              </div>
+              <div class="transaction-info">
+                <div class="transaction-title">${transaction.description}</div>
+                <div class="transaction-date">${formattedDate}</div>
+              </div>
+            </div>
+            <div class="transaction-amount ${transaction.type}">
+              ${transaction.type === 'add' ? '+' : '-'}₹${transaction.amount.toFixed(2)}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Show notification
+    function showNotification(message, type = 'success') {
+      // Remove existing notification if any
+      const existingNotification = document.querySelector('.notification');
+      if (existingNotification) {
+        existingNotification.remove();
+      }
+      
+      const notification = document.createElement('div');
+      notification.className = `notification ${type}`;
+      notification.textContent = message;
+      document.body.appendChild(notification);
+      
+      setTimeout(() => notification.remove(), 3000);
+    }
+
+    // Go back to previous page
+    function goBack() {
+      window.history.back();
+    }
+
+    // Initialize app when DOM is loaded
+    document.addEventListener('DOMContentLoaded', initApp);
+  </script>
+</body>
+</html>
